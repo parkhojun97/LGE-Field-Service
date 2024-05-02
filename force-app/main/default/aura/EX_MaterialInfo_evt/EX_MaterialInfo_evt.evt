@@ -1,0 +1,6 @@
+<aura:event type="APPLICATION" description="EX_MaterialInfo_evt" access="global">
+    <aura:attribute name="FSContactId" type="String" />
+    <aura:attribute name="FSProductIds" type="String" />
+    <aura:attribute name="isSuppliesEvent" default="false" type="Boolean" />
+    <aura:attribute name="isOrderListEvent" default="false" type="Boolean" />
+</aura:event>

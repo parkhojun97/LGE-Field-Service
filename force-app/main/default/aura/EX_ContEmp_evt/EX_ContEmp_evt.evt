@@ -1,0 +1,13 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-03-29.
+ -->
+
+<aura:event type="APPLICATION" description="EX_ContEmp_evt">
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="objEmp" type="User"/>
+    <aura:attribute name="prId" type="String"/>
+    <aura:attribute name="isManagement" type="boolean" default="false"/>
+
+    <aura:attribute name="ServiceResource" type="String"/>
+
+</aura:event>

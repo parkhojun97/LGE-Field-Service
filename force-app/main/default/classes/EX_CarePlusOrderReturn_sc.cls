@@ -1,0 +1,45 @@
+/**
+ * Created by A80598 on 2023-05-16.
+ */
+
+public with sharing class EX_CarePlusOrderReturn_sc implements Schedulable {
+    // Schedule 등록 배치명
+    private static String batchName = 'EX_CarePlusOrderReturn';
+    // Schedule Cron Expression (매일 09시~18시 매시 10분/40분)
+    private static String batchCron1 = '0 10 9-18 * * ? *';
+    private static String batchCron2 = '0 40 9-18 * * ? *';
+    // Batch 수행 Size
+    private static Integer batchSize = 100;
+
+    /**
+     * 배치 Schedule 등록
+     * EX_CarePlusOrderReturn_sc.runSchedule();
+     */
+    public static void runSchedule() {
+        System.schedule(batchName+'10', batchCron1, new EX_CarePlusOrderReturn_sc());
+        System.schedule(batchName+'40', batchCron2, new EX_CarePlusOrderReturn_sc());
+    }
+
+    /**
+     * 배치 실행 멤버 함수(override)
+     *
+     * @param SC : SchedulableContext
+     */
+    public void execute(SchedulableContext sc) {
+        //Database.executeBatch(new EX_CarePlusOrderReturn_ba(), batchSize);
+        System.debug('EX_CarePlusOrderCancel_ba의 Finish에서 실행됩니다.');
+    }
+
+    /**
+     *  배치 Schedule 삭제
+     *  EX_CarePlusOrderReturn_sc.abortSchedule();
+     */
+    public static void abortSchedule() {
+        List<String> batchNameList = new List<String>();
+        batchNameList.add(batchName+'10');
+        batchNameList.add(batchName+'40');
+        for (CronTrigger t : [SELECT Id FROM CronTrigger WHERE CronJobDetail.Name IN :batchNameList]) {
+            if(!Test.isRunningTest())   System.abortJob(t.Id);
+        }
+    }
+}

@@ -1,0 +1,144 @@
+/**
+ * Created by sm.yang on 2022-11-13.
+ */
+
+.THIS .centerDiv {
+    padding-top: 10px;
+}
+
+.THIS .slds-form-element_stacked:not(.slds-form-element_readonly){
+    margin-bottom: 0px;
+}
+
+.THIS .slds-tabs_scoped__item{
+    font-size: var(--lwc-fontSize5,1rem);
+}
+
+
+.THIS .inputTaLabelPosLeft > label{
+    padding-top:8px;
+}
+
+.THIS .inputTaLabelPosLeft {
+    display: flex;
+}
+
+.THIS .slds-textarea{
+    height: 5.4vh;
+}
+
+.THIS .labelHidden > span {
+    display:none;
+    width:0px;
+}
+.THIS .bgWhite {background: #fff;}
+
+
+.THIS .grid_height {
+    height: 80px !important;
+}
+
+.THIS .grid_height_100 {
+    height: 100% !important;
+        max-height: 100%;
+
+}
+.THIS .grid_height_40{
+    height: 40vh !important;
+}
+.THIS  {padding: 12px 16px;}
+.THIS  .gridHeaderWrap {display: flex; margin-bottom: 8px;}
+.THIS  .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS  .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS  .gridHeaderWrap .gridHeaderBtnWrap button {color: #1f1f1f; height: 26px;}
+.THIS  .gridMaster {border-bottom: 1px solid #D8D8D8;}
+.THIS  .gridMaster .slds-table_header-fixed_container {background: #fff;}
+.THIS  .gridMasterBtnWrap {display: flex; margin-top: 8px; justify-content: flex-end;}
+/* .THIS .gridWrap .gridMasterBtnWrap .btnSave {margin-left: auto;} */
+.THIS  .gridSlave {background: #f5f5f5;}
+.THIS  .gridSlave .gridSlaveInner {border-bottom: 1px solid #D8D8D8;}
+.THIS  .gridSlave .slds-is-open>.slds-accordion__summary .slds-accordion__summary-action-icon {transform: rotate(180deg);}
+.THIS  .gridSlave .slds-accordion__summary-action-icon {transform: rotate(0deg);}
+
+/* .THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon svg {transform: rotate(0deg);} */
+.THIS  .gridSlave .gridSlaveBtn {color: #1f1f1f; height: 26px;}
+.THIS  .gridSlave .gridSlaveTable .slds-table_header-fixed_container {background: transparent;}
+.THIS  .gridSlave .gridSlaveTable .slds-table_header-fixed thead th {background: #D8D8D8;}
+.THIS  .gridSlave .gridSlaveTable .slds-cell-fixed {background: #D8D8D8;}
+.THIS  .gridSlave .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:hover,
+.THIS  .gridSlave .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:focus
+{color: #1f1f1f; text-decoration: none;}
+.THIS  .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon {order: 2;}
+.THIS  .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon svg {margin: 0 0 0 8px;}
+.THIS .cBox {border: 1px solid #D8D8D8; box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.08); border-radius: 6px; }
+.THIS .ml_12 {margin-left: 12px;}
+.THIS .bgLightGray {background: #F5F5F5;}
+.THIS  .gridHeaderWrap {display: flex; margin-bottom: 8px;}
+.THIS  .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS  .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS  .gridHeaderWrap .gridHeaderBtnWrap button {color: #1f1f1f; height: 26px;}
+.THIS  .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS  .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS  .gridHeaderWrap .gridHeaderBtnWrap button {color: #1f1f1f; height: 26px;}
+.THIS .profileWrap {overflow-y: auto; height: calc(100% - 35px);}
+.THIS .checkBoxWrap {display: flex;}
+.THIS .checkBoxWrap li {height: 28px;}
+.THIS .profileBox.boxGray {background: #E8E8E8; border-radius: 6px;}
+.THIS .mt_12 {margin-top: 12px;}
+.THIS .profileBox .profileBoxTtl {font-weight: 600; width: 60px; border-right: 1px solid #8F8F8F;}
+.THIS .profileBox .profItemWrap {display: flex; flex-direction: row; flex-wrap: wrap; width: 100%; padding-left: 12px;}
+.THIS .profileBox .profItemWrap li {padding: 0;}
+.THIS .profileBox .profItemWrap li:nth-child(1), .THIS .profileBox .profItemWrap li:nth-child(2) {width: 149px;}
+.THIS .profileBox .profItemWrap li:nth-child(2) {padding-left: 12px;}
+.THIS .profileBox .profItemWrap li:nth-child(3) {flex: 1;}
+.THIS .profileBox .profItemWrap li:nth-child(3) > lightning-input {flex: 1;}
+.THIS .profileBox .profItemWrap li:nth-child(3) > button {color: #1f1f1f; margin-left: 10px;}
+.THIS .profileBox .profItemWrap li:nth-child(4) {width: 298px;}
+.THIS .flex1 {flex: 1;}
+.THIS .cBox {border: 1px solid #D8D8D8; box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.08); border-radius: 6px; }
+.THIS .gridWrap {padding: 12px 16px;}
+.THIS .gridWrap .gridHeaderWrap {display: flex; margin-bottom: 8px;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap .gridSlaveBtn {color: #1f1f1f; height: 26px;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap .gridSlaveBtnDisabled {color: #cccaca; height: 26px;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap button {color: #1f1f1f; height: 26px;}
+.THIS .gridWrap .gridMaster {border-bottom: 1px solid #D8D8D8;}
+.THIS .gridWrap .gridMaster .slds-table_header-fixed_container {background: #fff;}
+.THIS .gridWrap .gridMasterBtnWrap {display: flex; margin-top: 8px; justify-content: flex-end;}
+/* .THIS .gridWrap .gridMasterBtnWrap .btnSave {margin-left: auto;} */
+.THIS .gridWrap .gridSlave {background: #f5f5f5;}
+.THIS .gridWrap .gridSlave .gridSlaveInner {border-bottom: 1px solid #D8D8D8;}
+.THIS .gridWrap .gridSlave .slds-is-open>.slds-accordion__summary .slds-accordion__summary-action-icon {transform: rotate(180deg);}
+.THIS .gridWrap .gridSlave .slds-accordion__summary-action-icon {transform: rotate(0deg);}
+
+/* .THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon svg {transform: rotate(0deg);} */
+.THIS .gridWrap .gridSlave .gridSlaveBtn {color: #1f1f1f; height: 26px;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-table_header-fixed_container {background: transparent;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-table_header-fixed thead th {background: #D8D8D8;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-cell-fixed {background: #D8D8D8;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:hover,
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:focus
+{color: #1f1f1f; text-decoration: none;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon {order: 2;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon svg {margin: 0 0 0 8px;}
+
+.THIS .wrapFlex {display: flex;}
+.THIS .sectionTop {height: 443px;}
+.THIS .profileWrap {overflow-y: auto; height: calc(100% - 35px);}
+.THIS .checkBoxWrap {display: flex;}
+.THIS .checkBoxWrap li {height: 28px;}
+.THIS .profileBox.boxGray {background: #E8E8E8; border-radius: 6px;}
+.THIS .mt_12 {margin-top: 12px;}
+.THIS .profileBox {padding: 12px; display: flex;}
+.THIS .profileBox.boxGray {background: #E8E8E8; border-radius: 6px;}
+.THIS .profileBox .profileBoxTtl {font-weight: 600; width: 60px; border-right: 1px solid #8F8F8F;}
+.THIS .profileBox .profItemWrap {display: flex; flex-direction: row; flex-wrap: wrap; width: 100%; padding-left: 12px;}
+.THIS .profileBox .profItemWrap li {padding: 0;}
+.THIS .profileBox .profItemWrap li:nth-child(1), .THIS .profileBox .profItemWrap li:nth-child(2) {width: 149px;}
+.THIS .profileBox .profItemWrap li:nth-child(2) {padding-left: 12px;}
+.THIS .profileBox .profItemWrap li:nth-child(3) {flex: 1;}
+.THIS .profileBox .profItemWrap li:nth-child(3) > lightning-input {flex: 1;}
+.THIS .profileBox .profItemWrap li:nth-child(3) > button {color: #1f1f1f; margin-left: 10px;}
+.THIS .profileBox .profItemWrap li:nth-child(4) {width: 298px;}
+.THIS .btn_tm {margin-top: auto;}

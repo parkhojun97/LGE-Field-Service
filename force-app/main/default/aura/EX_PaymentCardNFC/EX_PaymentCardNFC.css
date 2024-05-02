@@ -1,0 +1,18 @@
+/**
+ * Created by A78916 on 2023-06-02.
+ */
+
+ .THIS {
+}
+.THIS .nfc-spinner {
+    position: relative;
+    display: inline-block;
+    margin-left: 15px;
+    width: 55px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.THIS .nfc-spinner .slds-spinner_container {
+    background-color: transparent;
+}

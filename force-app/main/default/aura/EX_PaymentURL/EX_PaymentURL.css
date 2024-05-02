@@ -1,0 +1,45 @@
+/**
+ * Created by A78916 on 2022-12-19.
+ */
+.THIS .pg-bank .slds-form-element_horizontal:not(.slds-form-element_readonly) {
+    margin-bottom: 2px;
+}
+
+.THIS .cm-vbank .slds-form-element_horizontal:not(.slds-form-element_readonly) {
+    margin-bottom: 5px;
+}
+
+.THIS .modal-refund {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 9;
+    bottom: 0;
+}
+
+/*noinspection CssUnresolvedCustomProperty*/
+.THIS .backdrop-refund {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--slds-c-backdrop-color-background, var(--sds-c-backdrop-color-background, var(--lwc-colorBackgroundTempModalTint, rgba(8, 7, 7, 0.6))));
+}
+
+.THIS .modal-refund .slds-card__body {
+    min-height: 164px;
+    margin-bottom: 0;
+}
+/*noinspection CssUnresolvedCustomProperty*/
+.THIS .modal-refund .slds-card__header {
+     padding-top: var(--slds-c-card-header-spacing-block-start, var(--sds-c-card-header-spacing-block-start, var(--slds-c-card-header-spacing-block, var(--sds-c-card-header-spacing-block, var(--lwc-varSpacingVerticalSmall,0.75rem)))));
+     padding-bottom: var(--slds-c-card-header-spacing-block-end, var(--sds-c-card-header-spacing-block-end, var(--slds-c-card-header-spacing-block, var(--sds-c-card-header-spacing-block, 0))));
+ }
+
+ .THIS .textarea1 .slds-textarea {
+    height:135px !important;
+}

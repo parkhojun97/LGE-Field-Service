@@ -1,0 +1,13 @@
+<aura:event type="APPLICATION" description="Event template">
+
+    <aura:attribute name="isConsumable" type="Boolean"/>
+    <aura:attribute name="contactId" type="String"/>
+    <aura:attribute name="EXProductIds" type="List" default="[]"/>
+    <aura:attribute name="CustomerLocationId" type="String"/>
+    <aura:attribute name="CustomerLocationLabel" type="String" />
+    <aura:attribute name="InitLocationId" type="String" />
+    <aura:attribute name="InitLocationLabel" type="String" />
+    <aura:attribute name="strTabId" type="String" />
+    <aura:attribute name="strCaseId" type="String" />
+
+</aura:event>

@@ -1,0 +1,18 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-01-04.
+ -->
+
+<aura:component description="PdfViewer">
+
+    <!-- Attribute -->
+    <aura:attribute access="GLOBAL" name="pdfData" type="String" description="PDF 포맷"/>
+
+    <div style="width:100%; height:100%">
+        <lightning:layout>
+            <lightning:layoutItem size="12">
+                <iframe aura:id="pdfFrame" src="/resource/PdfJsViewer_v1/web/viewer.html" class="pdfFrame" onload="{!c.fnLoadpdf}" allign="middle" style=" width:82vw;height:70vh;"></iframe>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+
+</aura:component>

@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.SEUNGHUNAN on 2023-03-11.
+ -->
+
+<aura:event type="APPLICATION" description="EX_IntegrationOrderManagement_evt">
+    <aura:attribute name="isSearchBtnClick" type="Boolean" />
+</aura:event>

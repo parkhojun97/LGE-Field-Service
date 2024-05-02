@@ -1,0 +1,279 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2022/12/25.
+ -->
+
+<aura:component description="EX_SuppliesOrderList" controller="EX_SuppliesController" access="global" 
+    implements="lightning:availableForFlowScreens,force:lightningQuickActionWithoutHeader,lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:appHostable,forceCommunity:availableForAllPageTypes,lightning:isUrlAddressable,lightning:hasPageReference">
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+    <lightning:navigation aura:id="navService"/>
+    <lightning:workspaceAPI   aura:id="workspace" />
+    <lightning:navigationItemAPI aura:id="navigationItemAPI"/>
+
+    <aura:attribute name="navService" type="Object" />
+
+    <aura:attribute name="draftValues" type="Object" default="[]"/>
+    <aura:attribute name="modalContent" type="Aura.Component"/>
+
+    <aura:attribute name="objSelected" type="Object"/>
+
+    <!-- 23.02.23 I2MAX.SEOKHOLEE 추가 -->
+    <aura:attribute name="isExchangeOrder" type="Boolean" description="소모품 주문 화면의 분기 처리 용도, 일반 주문과 교환 주문에 따른 화면 분기"/>
+
+    <aura:attribute name="exchangeLimitedQuantity" type="Decimal"/>
+    <aura:attribute name="requestedReturnQuantity" type="Decimal" default="0"/>
+
+    <!-- 23.02.27 / 소모품 교환 주문 데이터(회수부품정보) -->
+    <aura:attribute name="exchangeReturnOrderData" type="List" default="[]" description="소모품 원 주문 품목 데이터(회수부품정보)"/>
+    <aura:attribute name="basisOrderNumber" type="String" default="[]" description="소모품 원 주문 번호"/>
+    <aura:attribute name="productRequestLineItemIdExchangeLimitedQuantityMap" type="Map" default="{}" description="소모품 교환시 productRequestLineItem 의 Data Map"/>
+    <aura:attribute name="productRequestLineItemIdRequestedReturnQuantityMap" type="Map" default="{}" description="소모품 교환시 productRequestLineItem 의 Data Map"/>
+
+    <!-- Datatable -->
+    <aura:attribute name="columns" type="List" default="[]"/>
+    <aura:attribute name="data" type="List" default="[]" description="소모품 주문 데이터"/>
+    <aura:attribute name="sbom" type="List"/>
+    <aura:attribute name="purchaseType" type="String" default='None' description="주문,품절 구분"/>
+    <!--테스트데이터용-->
+    <aura:attribute name="isAfterInit" type="Boolean"/>
+
+    <aura:attribute name="strTabId" type="String" description="parent Tap id (이벤트 구분용)"/>
+    <aura:attribute name="strCaseId" type="String" description="Case의 Id"/>
+
+    <aura:attribute name="consumableHeaderValues" type="Map" description="소모품 주문 저장을 위한 소모품 주문 정보"/>
+    <aura:attribute name="parseFee" type="Decimal" description="최소주문금액"/>
+    <aura:attribute name="bulkOrderManager" type="Boolean" description="대량 주문 담당자 여부"/>
+    <aura:attribute name="costLimitManager" type="Boolean" description="최소 주문 금액 담당자 여부"/>
+
+    <!-- 소모품 택배 main 화면 값 -->
+    <aura:attribute name="consertObjCont" type="Contact"/>
+    <aura:attribute name="consertContactId" type="String" />
+    <aura:attribute name="consertConsigneeName" type="String" description="수취인 이름"/>
+    <aura:attribute name="consertIbCallNo" type="String" description="수취인 전화번호"/>
+    <aura:attribute name="consertNewAddress" type="String"/>
+    <aura:attribute name="consertDetailAddress" type="String"/>
+    <aura:attribute name="consertRequestedTerm" type="String" description="요청 사항"/>
+    <aura:attribute name="consertRemark" type="String" description="특이 사항 | 상담 이력"/>
+    <aura:attribute name="consertIsContactSame" type="Boolean" default="true" description="주문 고객과 수취인 동일 여부"/>
+    <aura:attribute name="consertPhoneCol" type="String" default="a" description="전화번호 형식 검사용"/>
+    <aura:attribute name="consertZoneCode" type="String" />
+    <aura:attribute name="consertManagerNote" type="String" description="관리자 메모"/>
+    <aura:attribute name="consertContactVIP" type="Decimal"  description="해당 고객 VIP 할인율"/>
+
+
+    <!--  고객정보  -->
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="contactId" type="String" description="소모품 주문 고객"/>
+    <aura:attribute name="ContactVIP" type="Decimal"  description="해당 고객 VIP 할인율"/>
+    <aura:attribute name="consigneeName" type="String" description="수취인 이름"/>
+    <aura:attribute name="IbCallNo" type="String" description="수취인 전화번호"/>
+    <aura:attribute name="newAddress" type="String"/>
+    <aura:attribute name="detailAddress" type="String"/>
+    <aura:attribute name="requestedTerm" type="String" description="요청 사항"/>
+    <aura:attribute name="remark" type="String" description="특이 사항 | 상담 이력"/>
+    <aura:attribute name="isContactSame" type="Boolean" default="true" description="주문 고객과 수취인 동일 여부"/>
+    <aura:attribute name="phoneCol" type="String" default="a" description="전화번호 형식 검사용"/>
+    <aura:attribute name="zoneCode" type="String" />
+    <aura:attribute name="managerNote" type="String" description="관리자 메모"/>
+
+    <aura:attribute name="isCreateOrder" type="Boolean"/>
+
+
+    <aura:attribute name="selectField" type="String" default=""/>
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="orderTotal" type="Decimal" default="0"/>
+    <aura:attribute name="maximumAmount" type="Decimal" default="0" description="최대 주문가능 수량"/>
+    <!-- 23.12.11 gw.lee 관리자 최대 주문 수량 -->
+    <aura:attribute name="maximumManagerAmount" type="Decimal" default="0" description="최대 관리자 주문가능 수량"/>
+    <!-- 23.12.11 gw.lee 현재 주문 수량 -->
+    <aura:attribute name="currentTotalQty" type="Decimal" default="0" description="최대 관리자 주문가능 수량"/>
+
+    <!--23 09 21 hyungho.chun 소모품주문누르기전 임시 판매금액-->
+    <aura:attribute name="orderTotalTemp" type="Decimal" default="0"/>
+
+    <aura:attribute name="serviceCenterId" type="String" description="자재포탈로 이동시 필요한 필수 센터 Id"/>
+    <aura:attribute name="serviceCenterLabel" type="String" description="자재포탈로 이동시 필요한 필수 센터 Label"/>
+
+
+    <aura:attribute name="mapSettingValue" type="Map" default="{}" description="화면 조회조건에 세팅될 값 (Origin과는 별개)"/>
+    <aura:attribute name="mapSearchParam" type="Map" default="{}"/>
+    <aura:attribute name="quantityMap" type="Map" default="{}"/>
+    <aura:attribute name="stoargeMap" type="Map" default="{}"/>
+
+    <!--Handler[S]-->
+<!--    fnAddData-->
+    <aura:handler event="c:EX_Supplies_evt" action="{!c.fnAddWijmoHelper}"/>
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+
+    <aura:handler event="c:EX_SuppliesPartContact_evt" action="{!c.getContact}"
+                  description="EX_SuppliesPart 에서 식별된 고객 정보 변경 시 변경 된 고객 정보 Handling "/>
+    <aura:handler event="c:EX_SuppliesConsigneeEvt" action="{!c.getConsignee}"
+                  description="EX_SuppliesPart 수취인 정보 변경시"/>
+    <aura:handler event="c:EX_disabledMaterial_evt" action="{!c.getMaterialTab}"/>
+    <aura:attribute name="isMaterialTab" type="Boolean" default="true"/>
+
+
+
+    <!-- 상담포탈에서 소모품주문화면탭이 다수인 경우 수취인 정보를 다시 받기위한 이벤트  -->
+    <aura:registerEvent name="EX_SuppliesPartCaseContact_evt" type="c:EX_SuppliesPartCaseContact_evt"/>
+
+    <aura:handler event="c:EX_SuppliesPartRemark_evt" action="{!c.fnSetRemark}" description="SuppliesPart에서 수신된 상담이력"/>
+    <aura:handler event="c:EX_MaterialPortal_evt" action="{!c.test}" description="test"/>
+
+
+    <aura:handler event="c:EX_SuppliesExchangePart_evt" action="{!c.fnReceiveEvt}" description="소모품 교환요청의 회수부품정보에서 발생한 이벤트 핸들링"/>
+
+
+    <aura:registerEvent name="SplitViewEvent" type="c:EX_SplitView_evt"/>
+    <aura:registerEvent name="EX_SuppliesOrderList_evt" type="c:EX_SuppliesOrderList_evt"/>
+    <aura:registerEvent name="EXtomaterial_evt" type="c:EXtomaterial_evt"/>
+    <!--23 09 21 hyungho.chun 위즈모 렌더용 빈껍데기 왔다갔다-->
+    <!-- <aura:registerEvent name="EX_ConsumableOrderList_evt" type="c:EX_ConsumableOrderList_evt"/>
+    <aura:handler event="c:EX_ConsumableOrderList2_evt" action="{!c.fnGetWijmoDraftTemp}"/> -->
+    
+
+    <aura:attribute name="isSplitOpened" type="Boolean" default='false'/>
+    <aura:attribute name="currentLocation" type="String"/>
+    <!-- 23.05.01 자재포탈 인입 여부 추가 -->
+    <aura:attribute name="FSIsMaterialPortal" type="Boolean" default="false" description="자재 포탈에서 넘어온 자재포탈 인입 여부"/>
+
+    <!-- 23.07.20 분해도 장바구니 이벤트 핸들링 -->
+    <!-- <aura:handler event="c:FS_ExplodedDrawingPop_evt" action="{!c.getProductListFromExplodedPop}"/> -->
+    <aura:handler event="c:FS_ExpDrawingPopForConsume_evt" action="{!c.getProductListFromExplodedPop}"/>
+    <aura:attribute name="FSIsExplodedDrawingPop" type="Boolean" default="false" description="분해도에서 넘어온 인입 여부"/>
+    
+    <!-- 포인트 여부 추가 -->
+    <aura:attribute name="hasPointAmount" type="Boolean" default="false"/>
+
+    <aura:handler event="c:EX_SplitView_SearchParts_evt" action="{!c.fnHandleSplitViewEvent}"/>
+    <!--    <aura:handler name="change" value="{!v.sbom}" action="{!c.fnChg}" />-->
+
+    <aura:attribute name="isTest" type="Boolean" default='false'/>
+
+    <aura:attribute name="addPrdShipmentName" type="String" default=''/>
+    <aura:attribute name="addPrdShipmentCode" type="String" default=''/>
+
+
+    <aura:attribute name="standardOrderData" type="List" default="[]"/>
+    <aura:attribute name="soldOutOrderData" type="List" default="[]"/>
+    <aura:attribute name="updatedRemark" type="String" default=""/>
+    <aura:attribute name="stdConsumableOrderId" type="String" default=""/>
+    <aura:attribute name="soldOutConsumableOrderId" type="String" default=""/>
+    <aura:attribute name="poId" type="String" default=""/>
+    <aura:attribute name="isOrderChange" type="Boolean" default="false"/>
+    <aura:attribute name="focusedTabId" type="String" default=""/>
+    <aura:attribute name="zoneData" type="String" default=""/>
+
+    <c:EX_MessageBox aura:id="dialog"/>
+
+    <!-- encode String -->
+    <aura:attribute name="encodeString" type="String" default=""/>
+
+    <aura:if isTrue="{!v.showSpinner}">
+        <lightning:spinner variant="brand" alternativeText="Waiting"/>
+    </aura:if>
+    <!--    <div class="slds-grid slds-m-top_xx-small" style="width:100%" aura:id="Main_layoutItem">-->
+    <div style="height: calc(100% - 530px);" class="mt_12">
+        <div style="height: 100%; min-height:245px" class="gridWrap cBox bgWhite">
+            <!--Title Wrap Start-->
+            <ul class="gridHeaderWrap">
+
+                <!-- 23.08.28 PHJ -->
+                <aura:if isTrue="{!not(v.isExchangeOrder)}">
+                    <li class="gridHeaderTtl">주문내역</li>
+                    <li class="location_search">
+                        <c:DN_Lookup aura:id="locationLookup"
+                                     uniqueLookupIdentifier="locationLookup"
+                                     fieldLabel="요청센터"
+                                     objectName="Location"
+                                     fieldSet="['Name', 'LocationType', 'DEPT_CODE__c']"
+                                     whereCondition="AND fm_RecordType__c = 'Center' AND SM_DEPT_Id__r.DEPT_TYPE_SECOND__c = 'E' AND SM_DEPT_Id__r.CLOSE_YN__c != 'Y'"
+                                     limit="50000"
+                                     comparisonField="['Name', 'DEPT_CODE__c']"
+                                     primaryDisplayField="Name"
+                                     alternateDisplayField="['LocationType', 'DEPT_CODE__c']"
+                                     lightningIconName="standard:location"
+                                     selectedId="{!v.serviceCenterId}"
+                                     selectedLabel="{!v.serviceCenterLabel}"
+                                     compact="true"
+                                     minimumCharacter="1"/>
+    
+                    </li>
+                    <li class="gridHeaderBtnWrap">
+                        <aura:if isTrue="{!v.isMaterialTab}">
+                            <lightning:button class="gridSlaveBtnDisabled" title="부품 Portal" label="부품Portal" disabled="{!v.isMaterialTab}" onclick="{!c.fnRedirectMaterialPortal}" />
+                            <aura:set attribute="else">
+                                <lightning:button  title="부품 Portal" label="부품Portal" onclick="{!c.fnRedirectMaterialPortal}" />
+                            </aura:set>
+                        </aura:if>
+                        <lightning:button title="재고조회" label="재고조회" onclick="{!c.fnWholeInventoryPop}"/>
+                    </li>
+                    <aura:set attribute="else">
+                        <li class="gridHeaderTtl">교환부품정보</li>
+                        <li class="gridHeaderBtnWrap">
+                            <lightning:button title="재고조회" label="재고조회" onclick="{!c.fnWholeInventoryPop}"/>
+                        </li>
+                    </aura:set>
+                </aura:if>
+                <!-- 23.08.28 PHJ -->
+
+            </ul>
+            <!--Title Wrap End-->
+            <!--DataTable Warp Start-->
+            <!-- <div style="{!v.isExchangeOrder ? 'height : 110px;' : 'height: calc(100% - 90px); overflow: auto;'}"> -->
+            <div style="{!v.isExchangeOrder ? 'height: 110px;' : 'height: calc(100% - 90px);'}">
+<!--                <lightning:datatable-->
+<!--                        aura:id="orderListDt"-->
+<!--                        columns="{!v.columns}"-->
+<!--                        data="{!v.data}"-->
+<!--                        keyField="sProductItemId"-->
+<!--                        onrowselection="{!c.fnSeleceted}"-->
+<!--                        maxRowSelection="1"-->
+<!--                        onsave="{! c.fnHandleSave }"-->
+<!--                        oncellchange="{!c.fnGetDraft}"-->
+<!--                        suppressBottomBar="true"-->
+<!--                        onrowaction="{!c.fnHandleRowAction}"-->
+<!--                        class ="slds-hide"-->
+<!--                />-->
+                
+                    <aura:if isTrue="{!(v.isExchangeOrder==true)}">
+                        <c:EXWijmo aura:id="wijmo_EXSuppliesOrderDisabledList"  onmessage="{!c.onWijmoMessage2}"
+                            stub="{! 'EXSuppliesOrderDisabledList'}" css="{! 'EXWijmoReconciled'}" />   
+                        <aura:set attribute="else">
+                            <c:EXWijmo aura:id="wijmo_EXSuppliesOrderList"  onmessage="{!c.onWijmoMessage}"
+                                stub="{! 'EXSuppliesOrderList'}" css="{! 'EXWijmoReconciled'}" isControl="true"/>
+                        </aura:set>
+                    </aura:if>
+                
+            </div>
+
+            <!--DataTable Warp End-->
+            <!--Bottom Wrap Start-->
+            <div class="gridMasterBtnWrap">
+
+                <p style="margin-top: -2px; font-weight: bold;">총
+                    <!-- <lightning:formattedNumber value="{!v.orderTotal}"/> -->
+                    <!--23 09 21 소모품주문 버튼 누르기전 임시 판매 금액-->
+                    <lightning:formattedNumber value="{!v.orderTotalTemp}"/>
+                    원
+                </p>
+                <p>
+                    <lightning:button aura:id="btnOpt1" title="초기화" label="초기화" onclick="{!c.fnClear}" class="btnOpt"/>
+                    <aura:if isTrue="{!not(v.isExchangeOrder)}">
+                        <!-- 24.02.01 gw.lee 버튼 기능 비활성화 추가 -->
+                        <div aura:id="btnSave"  variant="destructive" disabled="{!v.data.length == 0}" onclick="{!c.fnSave}" class="slds-button slds-button_destructive btnSave">소모품 주문</div>
+                        <!-- <lightning:button aura:id="btnSave" title="소모품 주문" label="소모품 주문" variant="destructive" disabled="{!v.data.length == 0}" onclick="{!c.fnSave}" class="btnSave"/> -->
+                        <aura:set attribute="else">
+                            <div aura:id="btnSave"  variant="destructive" disabled="{!v.data.length == 0}" onclick="{!c.fnExchangeRequest}" class="slds-button slds-button_destructive btnSave">소모품 교환</div>
+                            <!-- <lightning:button aura:id="btnSave" title="소모품 교환" label="소모품 교환" variant="destructive" disabled="{!v.data.length == 0}" onclick="{!c.fnExchangeRequest}" class="btnSave"/> -->
+                        </aura:set>
+                    </aura:if>
+                </p>
+            </div>
+            <!--Bottom Wrap End-->
+        </div>
+    </div>
+    <!--Section Bottom End-->
+
+    {!v.modalContent}
+</aura:component>

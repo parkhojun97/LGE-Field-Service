@@ -1,0 +1,62 @@
+/**
+ * Created by I2MAX.JAEYEONLEE on 2023-01-25.
+ */
+
+
+.THIS .gridHeaderWrap {display: flex; margin-bottom: 8px;}
+.THIS .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS .gridHeaderWrap .gridHeaderBtnWrap button {color: #1f1f1f; height: 26px;}
+.THIS .gridMaster {border-bottom: 1px solid #D8D8D8;}
+.THIS .gridMaster .slds-table_header-fixed_container {background: #fff;}
+.THIS .gridMasterBtnWrap {display: flex; margin-top: 8px; justify-content: flex-end;}
+
+/*반품반려 비활성화 버튼*/
+.THIS .gridSlaveBtn {color: blue; height: 26px !important;}
+.THIS .gridSlaveBtnDisabled {color: #cccaca; height: 26px;}
+.THIS .gridSlaveBtnD {; height: 26px;}
+
+/*배송지 수정 모달*/
+.THIS .grid {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid d8dde6;
+    }
+
+
+.THIS .c-container {
+    *margin: 10px 0 20px 0;
+    border: 1px solid #d8dde6;
+}
+
+.THIS .custom-box {
+    border: 1px solid #d8dde6;
+
+}
+
+.THIS .custom-box-align {
+    text-align: center;
+    font-size: larger;
+    font-weight: initial;
+
+}
+
+.THIS .slds-col {
+    padding-right:10px;
+    margin-top: 10px;
+}
+
+.THIS .width_20 {
+    width: 20% !important;
+}
+
+.THIS .width_70 {
+    width: 70% !important;
+}
+
+.THIS .btn_height_50 {
+    margin-top: 32px;
+}
+.THIS .myClass {
+    --sds-c-button-brand-color-background-disabled:red;
+}

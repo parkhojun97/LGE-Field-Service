@@ -1,0 +1,7 @@
+<!--
+ - Created by A78917 on 2023-02-02.
+ -->
+
+<aura:event type="APPLICATION" description="EX_Overflow_evt">
+    <aura:attribute name="CssClass" type="Boolean" default="false" />
+</aura:event>

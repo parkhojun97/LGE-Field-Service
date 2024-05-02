@@ -1,0 +1,9 @@
+<!--
+ - Created by I2MAX.SEUNGHUNAN on 2023-03-11.
+ -->
+
+<aura:event type="APPLICATION" description="EX_ConsumablesOrderManagement_evt">
+    <aura:attribute name="isSearchBtnClick" type="Boolean" />
+    <!--23 09 06 hyungho.chun serviceResource 정보 한번만 상위에서 보내게끔-->
+    <aura:attribute name="serviceResource" type="String"/>
+</aura:event>

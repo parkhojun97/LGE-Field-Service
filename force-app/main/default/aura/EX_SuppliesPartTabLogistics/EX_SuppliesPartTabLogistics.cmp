@@ -1,0 +1,355 @@
+<!--
+  * File Name   : SC_SuppliesPartTabLogistics
+  * Description :
+  * Author      : sy.lee
+  * Modification Log
+  * ===============================================================
+  * Ver  Date        Author          Modification
+  * ===============================================================
+    1.0  2022-11-13     sm.yang          Create
+-->
+
+<aura:component controller="EX_SuppliesController" 
+                implements="lightning:availableForFlowScreens,force:lightningQuickActionWithoutHeader,lightning:actionOverride,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:appHostable,forceCommunity:availableForAllPageTypes,lightning:isUrlAddressable,lightning:hasPageReference"
+                description="EX_SuppliesPartTabLogistics">
+    <lightning:workspaceAPI   aura:id="workspace" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    <aura:attribute name="isExchangeOrder" type="Boolean" description="소모품 주문 화면의 분기 처리 용도, 일반 주문과 교환 주문에 따른 화면 분기"/>
+    <aura:attribute name="requestedReturnQuantity" type="Decimal" description="소모품 교환시 회수부품정보의 반품요청수량 "/>
+    <aura:attribute name="productRequestLineItemId" type="String" description="소모품 교환시 Product Request Line Item Id"/>
+
+    <!--원부품 대치부품 -->
+    <aura:attribute name="objOrigin" type="Object"/>
+    <aura:attribute name="objCrossPart" type="Object"/>
+
+    <!--component attribute-->
+    <aura:attribute name="objPartInfo" type="Object"/>
+    <aura:attribute name="sOriginPartImage" type="String" default=""/>
+    <aura:attribute name="sCrossPartImage" type="String" default=""/>
+
+    <!-- DataTable 용도 -->
+    <aura:attribute name="listSelectRows" type="List" default="[]"/>
+    <aura:attribute name="listData" type="List" default="[]"/>
+    <aura:attribute name="listColumns" type="List"/>
+    <aura:attribute name="sortedBy" type="String" default="Name"/>
+    <aura:attribute name="sortedDirection" type="String" default="asc"/>
+    <aura:attribute name="DISABLED" type="String" default=""/>
+
+    <aura:attribute name="EXQuantity" type="Integer" default="0" description="소모품센터 재고"/>
+    <aura:attribute name="DIVQuantity" type="Integer" default="0" description="사업부 재고"/>
+
+    <!-- Sorting Attribute -->
+    <aura:attribute name="sSortBy" type="String"/>
+    <aura:attribute name="sSortDirection" type="String"/>
+    <aura:attribute name="defaultSortDirection" type="String"/>
+    <aura:attribute name="isSpinner" type="Boolean" default="false"/>
+
+    <aura:attribute name="parseFee" type="Decimal" description="택배 제한 금액"/>
+    <aura:attribute name="strTabId" type="String" description="parent Tap id (이벤트 구분용)"/>
+
+    <!-- 카카오 모달창 Attribute -->
+    <aura:attribute name="kakaoModal" type="Boolean" default="false"/>
+
+    <!-- 카카오 모달창 Handler -->
+    <aura:handler name="change" value="{!v.kakaoModal}" action="{!c.fnKaKaoModalInit}"/>
+    <!-- <aura:attribute name="kakaoBtnDisabled" type="boolean" default="false" /> -->
+    <aura:attribute name="kakaoBtnDisabled" type="boolean" default="true" /> <!--default true -->
+    <aura:handler name="change" value="{!v.objCont}" action="{!c.fnKaKaoBtnValidate}" />
+    <aura:handler name="change" value="{!v.selectedObject}" action="{!c.fnKaKaoBtnValidate}" />
+    <aura:handler name="change" value="{!v.kakaoBtnDisabled}" action="{!c.fnKakaoBtnDisabledChange}" />
+
+    <aura:attribute name="exObjId" type="String" default=""/>
+
+    <!-- radio button 선택된 Object -->
+    <aura:attribute name="selectedObject" type="Object"/>
+    <aura:attribute name="selectedAlarm" type="String" />
+
+    <!-- 현재 Case의 Contact -->
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:handler name="change" value="{!v.objCont}" action="{!c.objContChg}"/>
+
+    <aura:attribute name="messageObjectId" type="String"/>
+
+
+    <!--23.04.10 부품 검색-->
+    <aura:attribute name="PARTID" type="ID"/>
+    <aura:attribute name="DIVCODE" type="String"/>
+    <aura:attribute name="partNo" type="String"/>
+    <aura:attribute name="modelName" type="String"/>
+    <aura:attribute name="PARTSPEC" type="String"/>
+    <aura:attribute name="isSBOM" type="Boolean" default="false"/>
+    <aura:attribute name="customerPrice" type="Decimal" description="교환요청 시 해당 원 부품의 소비자가"/>
+
+    <!-- 23.05.22 추가 -->
+    <aura:attribute name="originConsumerPrice" type="Decimal" default="" description="선택한 회수부품의 주문 당시의 소비자가"/>
+    <aura:attribute name="ChannelTypeCode" type="String" default="" description="소모품 주문 채널 코드"/>
+    <aura:attribute name="originProductId" type="String" default="" description="선택한 회수부품의 주문 부품 Id"/>
+
+    <aura:attribute name="PARTDESC" type="String"/>
+
+    <aura:attribute name="templateContent" type="String"/>
+
+    <aura:attribute name="branchModal" type="Boolean" default="false"/>
+    <aura:attribute name="alarmOption" type="List" default="[]" />
+    <aura:attribute name="receiverNumber" type="String"/>
+    <aura:attribute name="receiverMsg" type="String"/>
+
+    <aura:registerEvent name="EX_SuppliesEvt" type="c:EX_Supplies_evt"/>
+    <!-- 23.12.09 seung yoon heo 부품포탈 disable 처리 -->
+    <aura:registerEvent name="EX_disabledMaterial_evt" type="c:EX_disabledMaterial_evt"/>
+
+    <aura:handler name="change" value="{!v.objPartInfo}" action="{!c.fnPartChange}"/>
+
+    <!-- 2023-04-18 SBOM 조회 Cmp에서 넘어온 이벤트 (PARTNO) -->
+    <!-- 23.12.12 seung yoon heo  partNo로 비교하니 partNoChange 조회버튼시에도 해당 이벤트 발생 isSBOM으로 값 변경-->
+    <aura:handler name="change" value="{!v.isSBOM}" action="{!c.partNoChange}"/>
+    <aura:handler  event="c:EX_SearchSBOM_evt" action="{!c.fnPartNoSetEvt}"/>
+
+    <aura:handler event="c:EX_SuppliesExchangePart_evt" action="{!c.fnReceiveEvt}"
+                  description="소모품 교환요청의 회수부품정보에서 발생한 이벤트 핸들링"/>
+
+    <!-- 소모품 메시지 박스 컴포넌트 -->
+    <c:EX_MessageBox aura:id="dialog"/>
+
+    <div class="flex1 cBox gridWrap bgWhite "
+         style="{!v.isExchangeOrder == true ?  'height:300px; margin-top:5px; overflow:auto;' : 'height:100%'}">
+        <!--Title Wrap Start-->
+        <ul class="gridHeaderWrap">
+            <li class="gridHeaderTtl">부품확인</li>
+
+
+            <li class="gridHeaderBtnWrap">
+                <div class ='slds-no-flex'>
+                    <div class = 'slds-grid'>
+                        <lightning:layoutItem>
+                           <span onkeypress="{!c.fnEnter}">
+                                    <lightning:input class="slds-p-right_small" aura:id="PART_NO" type="search" label="PART NO" variant="label-hidden"
+                                                     placeholder="검색" value=""/>
+                            </span>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem  class="grid_height_100">
+                            <lightning:button label="조회" onclick="{!c.clickSearch}" class="grid_height_100"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem  class="grid_height_100">
+                            <aura:if isTrue="{!not(v.isExchangeOrder)}">
+                                <lightning:button aura:id="kakaoBtn" label="알림톡" title="알림톡" onclick="{!c.openBranchModal}" class="slds-p-left_medium gridSlaveBtnDisabled grid_height_100"
+                                                  disabled="{!v.kakaoBtnDisabled}"/>
+                            </aura:if>
+                        </lightning:layoutItem>
+                    </div>
+                </div>
+            </li>
+        </ul>
+<!--252-->
+<!--        overflow 추가-->
+        <div style="{!v.isExchangeOrder == true ? 'height: 75%; overflow: auto' : 'height: calc(100% - 200px); overflow:auto;'}">
+            <aura:if isTrue="{!v.isSpinner}">
+                <lightning:spinner variant="brand" size="medium"/>
+            </aura:if>
+<!--            교환 160px, 기본 ''-->
+            <div style="{!v.isExchangeOrder == true ? 'height: 170px' : 'height: 100%'}">
+
+<!--                <lightning:datatable-->
+<!--                        aura:id="stockList"-->
+<!--                        columns="{!v.listColumns}"-->
+<!--                        data="{!v.listData}"-->
+<!--                        keyField="Id"-->
+<!--                        maxRowSelection="1"-->
+<!--                        onrowaction="{!c.fnHandleRowAction}"-->
+<!--                        onrowselection="{!c.fnSelectRow}"-->
+<!--                        selectedRows="{! v.listSelectRows}"-->
+<!--                />-->
+                <aura:if isTrue="{!v.isExchangeOrder}">
+                    <c:EXWijmo aura:id="wijmo_EXSuppliesPartTabLogisticsDisabled"  onmessage="{!c.onWijmoMessage}"
+                    stub="{! 'EXSuppliesPartTabLogisticsDisabled'}" css="{! 'EXWijmoReconciled'}"/>
+                <aura:set attribute="else">
+                    <c:EXWijmo aura:id="wijmo_EXSuppliesPartTabLogistics"  onmessage="{!c.onWijmoMessage}"
+                            stub="{! 'EXSuppliesPartTabLogistics'}" css="{! 'EXWijmoReconciled'}"/>
+                </aura:set>
+                </aura:if>
+            </div>
+        </div>
+        <ul class="wrapFlex itemWarp">
+            <li class="flex1">
+                <div class="itemTopWrap">
+                    <p>원 부품정보</p>
+                    <!--OBS사이트 이동 버튼-->
+                    <lightning:button label="온라인 사이트 이동" iconName="utility:info" iconPosition="right" class="linkBtn" aura:id="originPart"
+                                      onclick="{!c.onclickOBS}"/>
+                </div>
+                <div class="itemCon">
+                    <ul class="iteminner">
+                        <!--부품 이미지-->
+                        <li class="itemImgBox">
+
+                            <aura:if isTrue="{!v.objOrigin.PART_TYPE =='N'}">
+                                <aura:set attribute="else">
+                                    <img src="{!if( empty(v.objOrigin.ObsImageUrl)
+                                            , if(empty(v.objOrigin.sDisplayUrl)
+                                                , '/img/search/no-results.png'
+                                                , v.objOrigin.sDisplayUrl)
+                                        , v.objOrigin.ObsImageUrl)}"
+                                         class="{!if( empty(v.objOrigin.ObsImageUrl)
+                                            , if(empty(v.objOrigin.sDisplayUrl)
+                                                , ''
+                                                , 'custom_img_fit')
+                                        , 'custom_img_fit')}"/>
+                                </aura:set>
+                        <!--  , '/img/search/no-results.png'-->
+                            </aura:if>
+                        </li>
+                        <!--부품 정보-->
+                        <li class="itemDetailInfo">
+                            <div class="itemName">{!v.objOrigin.ProductName}
+                                {!v.objOrigin.sDescription} {!v.objOrigin.PART_SPEC}
+                            </div>
+                            <div class="itemSn">
+                                {!v.objOrigin.ProductCode}
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <li class="flex1">
+                <div class="itemTopWrap">
+                    <p>대치 부품정보</p>
+                    <!--OBS사이트 이동 버튼-->
+                    <lightning:button label="온라인 사이트 이동" iconName="utility:info" iconPosition="right" class="linkBtn" aura:id="crossPart"
+                                      onclick="{!c.onclickOBS}"/>
+                </div>
+                <div class="itemCon">
+                    <ul class="iteminner">
+                        <!--부품 이미지-->
+                        <li class="itemImgBox">
+                            <aura:if isTrue="{!v.objCrossPart.PART_TYPE =='N'}">
+
+                                <aura:set attribute="else">
+                                    <img src="{!if(empty(v.objCrossPart.ObsImageUrl)
+                                        , if(empty(v.objCrossPart.sDisplayUrl)
+                                            , '/img/search/no-results.png'
+                                            , v.objCrossPart.sDisplayUrl)
+
+                                        , v.objCrossPart.ObsImageUrl)}"
+                                         class="{!if( empty(v.objCrossPart.ObsImageUrl)
+                                            , if(empty(v.objCrossPart.sDisplayUrl)
+                                                , ''
+                                                , 'custom_img_fit')
+                                        , 'custom_img_fit')}"/>
+                                </aura:set>
+                        <!--  , '/img/search/no-results.png'  -->
+                            </aura:if>
+                        </li>
+                        <!--부품 정보-->
+                        <li class="itemDetailInfo">
+                            <div class="itemName">{!v.objCrossPart.ProductName}
+                                {!v.objCrossPart.sDescription} {!v.objCrossPart.PART_SPEC}
+                            </div>
+                            <div class="itemSn">
+                                {!v.objCrossPart.ProductCode}
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Branch Modal: 제품페이지 or 대표이미지 -->
+    <aura:if isTrue="{!v.branchModal}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_small">
+            <aura:if isTrue="{!v.isSpinner}">
+                <lightning:spinner variant="brand" size="medium"/>
+            </aura:if>
+            <div class="slds-modal__container" style="width: 20% !important">
+                <!-- Header -->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseBranch}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">알림톡 종류 선택</h2>
+                </header>
+
+                <!-- Content -->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+                    <aura:if isTrue="{!v.alarmOption.length > 0}" >
+                        <h2 class="slds-card__header-title">알림톡 종류를 선택해주세요.</h2>
+                        <div class="slds-var-m-around_large">
+                            <lightning:radioGroup aura:id="alarm"
+                                                  name="alarm"
+                                                  label=""
+                                                  options="{!v.alarmOption}"
+                                                  value="{!v.selectedAlarm}"
+                                                  type="radio"/>
+                        </div>
+                        <aura:set attribute="else">
+                            <h2 class="slds-card__header-title">URL이 존재하지 않습니다.</h2>
+                        </aura:set>
+                    </aura:if>
+                </div>
+
+                <!-- Footer -->
+                <footer class="slds-modal__footer">
+                    <div class="slds-col_bump-left">
+                        <aura:if isTrue="{!v.alarmOption.length > 0}">
+                            <lightning:button variant="brand" label="선택" onclick="{!c.fnCloseBranch}"/>
+                        </aura:if>
+                        <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseBranch}"/>
+                    </div>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+
+    <!--카카오톡 모달-->
+    <aura:if isTrue="{!v.kakaoModal}">
+
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_small">
+            <aura:if isTrue="{!v.isSpinner}">
+                <lightning:spinner variant="brand" size="medium"/>
+            </aura:if>
+            <div class="slds-modal__container" style="width: 30% !important">
+                <!-- Header -->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseKakao}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">알림톡 전송</h2>
+                </header>
+
+                <!-- Content -->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+
+                    <h2 class="slds-card__header-title">알림톡 정보</h2>
+                    <div class="slds-var-m-around_large">
+                        <lightning:input label="수신자 핸드폰번호" value="{!v.receiverNumber}"
+                                         onchange="{!c.fnPhoneChg}" class="slds-size_4-of-12"/>
+                    </div>
+
+                    <div class="slds-var-m-around_large">
+                        <lightning:textarea name="input0" label="알림톡 메세지"
+                                            value="{!v.receiverMsg}"
+                                            class="textarea_height"
+                                            disabled="true"/>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <footer class="slds-modal__footer">
+                    <div class="slds-col_bump-left">
+                        <lightning:button label="보내기" variant="brand" onclick="{!c.fnSendKakao}"/>
+                        <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseKakao}"/>
+                    </div>
+                </footer>
+            </div>
+        </section>
+
+        <!--<div class="slds-backdrop slds-backdrop_open custom_backdrop"></div>-->
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <!-- -->
+
+</aura:component>

@@ -1,0 +1,921 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-01-04.
+ -->
+<aura:component
+        controller="EX_IntegrationOrderManagementController"
+        description="EX_IntegrationOrderList">
+    <!-- Infinite Loading Datatable Attribute -->
+    <aura:attribute name="totalRecord" type="Integer" default="0" />
+    <aura:attribute name="recordLimit" type="Integer" default="0" />
+    <aura:handler event="c:EX_IntegrationOrderManagement_evt" action="{!c.fnSearchBtnClick}" />
+    <aura:registerEvent name="EX_PaginationResearch_evt" type="c:EX_PaginationResearch_evt" />
+    <aura:attribute name="pageOffset" type="Integer" default="0" />
+    <aura:attribute name="onloadControl" type="Boolean" default="true" />
+
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="showSpinnerForOrderList" type="Boolean" default="false"/>
+    <aura:attribute name="mapSearchParam" type="Map" default="{}"/>
+    <aura:attribute name="mapSearchOrderParam" type="Map" default="{}" description="주문 리스트 값"/>
+    <aura:attribute name="columns" type="List" default="[]"/>
+    <aura:attribute name="data" type="List" default="[]"/>
+    <aura:attribute name="listOrder" type="List" default="[]" description="주문 리스트"/>
+    <aura:attribute name="orderNumber" type="String" default="" description="주문 리스트"/>
+    <aura:attribute name="productRequestLineItem" type="Map" default="{}" description="주문 리스트(수취인 변경)"/>
+    <aura:attribute name="isEditInfo" type="Boolean" default="false" description="수취인 정보 수정 가능 여부"/>
+    <aura:attribute name="objSelected" type="List" default="[]"/>
+    <aura:attribute name="mapSettingValue" type="Map" default="{}"/>
+    <aura:attribute name="mapSettingValueOrigin" type="Map" default="{}"/>
+    <aura:attribute name="closeModalOrderColumns" type="List" default="[]" description="주문 리스트"/>
+    <aura:attribute name="orderStChangeColumns" type="List" default="[]" description="주문 상태 변경"/>
+
+    <!-- Datatable Sorting  -->
+    <aura:attribute name="sortedBy" type="String" default="Name"/>
+    <aura:attribute name="sortedDirection" type="String" default="asc"/>
+
+    <!-- 반품요청 START -->
+    <aura:attribute name="returnOrderColumns" type="List" default="[]" description="반품"/>
+    <aura:attribute name="contactConsigneeInfo" type="Map" default="{}" description="반품 요청에서의 고객/수취인 정보"/>
+    <aura:attribute name="productRequestLineItemsByReturnRequest" type="List" default="[]"
+                    description="반품 요청에서의 ProductRequestLineItems"/>
+    <aura:attribute name="isSameContactByReturnRequest" type="Boolean" default="true"
+                    description="반품 요청에서의 결제자 정보와 동일"/>
+    <aura:attribute name="isSameReturnRequestReason" type="Boolean" default="true" description="반품 요청에서의 반품 사유 동일"/>
+
+    <!-- 반품요청 END-->
+    <aura:attribute name="exChangeColumns" type="List" default="[]" description="교환요청"/>
+    <aura:attribute name="exchangeOrderListColumns" type="List" default="[]" description="교환주문내역"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+     <aura:handler name="change" value="{!v.data}" action="{!c.changeOrderData}"/>
+     <!-- 23 07 14 hyungho.chun -->
+    <!-- <aura:handler event="c:EX_IntegrationOrderList_evt" action="{!c.fnGetRelatedOrderList}"/> -->
+
+    <!-- <aura:registerEvent name="EX_ConsumableOrderList_evt" type="c:EX_ConsumableOrderList_evt"/> -->
+    <aura:registerEvent name="EX_IntegrationOrderListNew_evt" type="c:EX_IntegrationOrderListNew_evt"/>
+    <aura:registerEvent name="EX_DownloadCSV_evt" type="c:EX_DownloadCSV_evt"/>
+
+    <aura:attribute name="mapInfo" type="Object"/>
+    <aura:attribute name="popupDataTable" type="List"/>
+    <aura:attribute name="orderCancel_disable" type="Boolean" default="true" description="주문취소 버튼 비활성화 여부"/>
+    <aura:attribute name="returnOrder_disable" type="Boolean" default="true" description="반품 버튼 비활성화 여부"/>
+    <aura:attribute name="exChange_disable" type="Boolean" default="true" description="교환요청 버튼 비활성화 여부"/>
+    <aura:attribute name="saleSave_disable" type="Boolean" default="true" description="주문취소 버튼 비활성화 여부"/>
+    <aura:attribute name="ShowOrderListModal" type="Boolean" default="false" description="주문 리스트 모달 출력 여부"/>
+    <aura:attribute name="showOrderListUpdateModal" type="Boolean" default="false" description="수취인 정보변경 모달 출력 여부"/>
+    <aura:attribute name="showOrderStChangeModal" type="Boolean" default="false" description="주문 상태 변경 모달 표시 여부"/>
+    <aura:attribute name="showReturnOrderModal" type="Boolean" default="false" description="반품 모달 표시 여부"/>
+    <aura:attribute name="showExchangeModal" type="Boolean" default="false" description="교환요청 모달 표시 여부"/>
+
+    <!-- 주문 상태 변경 -->
+    <aura:attribute name="relatedOrderList" type="Object" description="선택된 주문품목 및 관련된 주문 품목들"/>
+    <aura:attribute name="orderStatusDisabled" type="Boolean" default="true"/>
+    <aura:attribute name="stChangeTargetObj" type="Object" description="상태 변경 대상 ProductRequest"/>
+    <aura:attribute name="preSelectedRows" type="List" description="배송 상태 연속 변경을 위한" default="[]"/>
+    <aura:attribute name="orderStatusList" type="List" description="현재 주문 상태에 따라 변경 가능한 주문 상태 리스트"/>
+    <aura:attribute name="deliveryCompanyReadOnly" type="Boolean" default="true"/>
+    <aura:attribute name="trackingNumberReadOnly" type="Boolean" default="true"/>
+    <aura:attribute name="orderStatusReadOnly" type="Boolean" default="true"/>
+    <aura:attribute name="deliveryDateReadOnly" type="Boolean" default="true"/>
+    <aura:attribute name="changeReasonReadOnly" type="Boolean" default="true"/>
+    <aura:attribute name="saveReadOnly" type="Boolean" default="true"/>
+    <aura:attribute name="originMap" type="Map" default="{}" description="주문상태변경 취소 시 원복할 기존 정보들 "/>
+    <aura:attribute name="selectedRowsForStChg" type="Object" description="주문상태 변경 대상 데이터들 클릭/더블클릭 분리" />
+    <aura:attribute name="selectedRowsSaveSales" type="Object" description="선택된 주문번호 판매저장 대상 주문 품목들" />
+
+    <aura:handler name="change" value="{!v.orderStatusDisabled}" action="{!c.fnOrderStatusChg}" />
+
+
+    <!-- 배송/송장 정보 START -->
+    <aura:attribute name="showDeliveryInformationModal" type="Boolean" default="false" description="배송/송장 모달 표시 여부"/>
+    <aura:attribute name="deliveryInformationOrderColumns" type="List" default="[]" description="배송/송장 Column"/>
+    <aura:attribute name="deliveryInformationData" type="List" default="[]"
+                    description="배송/송장 정보"/>
+    <!-- 배송/송장 정보 END-->
+
+    <aura:attribute name="orderListSelectedRows" type="List" default="[]"/>
+
+
+
+
+    <!-- 판매저장 버튼 활성/비활성 Attr -->
+    <aura:attribute name="salesSaveBtnDisabled" type="Boolean" default="true" />
+    <aura:handler name="change" value="{!v.salesSaveBtnDisabled}" action="{!c.fnSalesSaveBtnChg}" />
+
+    <aura:attribute name="selectedId" type="String" default="" description="주문리스트에서 선택된 requestLineItem id"/>
+    <aura:attribute name="newAddress" type="String" default=""/>
+    <aura:attribute name="newDetailAddress" type="String" default=""/>
+    <aura:attribute name="newName" type="String" default=""/>
+    <aura:attribute name="newPhone" type="String" default=""/>
+    <aura:attribute name="newPostalCode" type="String" default=""/>
+
+    <aura:attribute name="vfHost" type="String"/>
+    <!--은행코드-->
+    <aura:attribute name="bankCode" type="String"/>
+    <aura:attribute name="bankOptions" type="List"/>
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:navigationItemAPI aura:id="navigationItemAPI"/>
+    <!-- Public Model Modal -->
+    <aura:attribute name="modalContent" type="Aura.Component"/>
+
+
+    <!-- Wijmo  -->
+    <aura:registerEvent name="onrowselection" type="c:EXSelectEvent"/>
+    <aura:registerEvent name="onediting" type="c:EXSelectEvent"/>
+    <aura:attribute name="componentName" type="String"/>
+
+    <aura:attribute name="selectedRowsFromWijmo" type="List" description="Wijmo 에서 선택한 SelectedRows"/>
+
+    <c:EX_MessageBox aura:id="dialog"/>
+
+    <ul class="gridHeaderWrap">
+        <li class="gridHeaderTtl">주문내역</li>
+            <li class="gridHeaderBtnWrap">
+                        <!-- 23.04.13 / 수취인변경 용도로만 사용하기 때문에 주문리스트 버튼 주석 처리               -->
+<!--                         <lightning:button aura:id="fnOpenOrderListModal" title="주문 리스트" label="주문 리스트" onclick="{!c.fnOpenOrderListModal}"/>-->
+<!--                    <lightning:button aura:id="downloadCSVFile" class="gridSlaveBtnDisabled" disabled="true" title="다운로드" label="다운로드" onclick="{!c.downloadCSVFile}"/>-->
+
+                    <lightning:button aura:id="orderStatusBtn" title="주문 상태 변경" class="gridSlaveBtnDisabled" label="주문 상태 변경" onclick="{!c.fnOpenOrderStChangeModal}"
+                                      disabled="{!v.orderStatusDisabled}"/>
+                <!-- 판매 저장 로직 완성되면 버튼 활성/비활성화 추가하기 -->
+                <lightning:button aura:id="salesSaveBtn"
+                                  title="판매저장"
+                                  label="판매저장"
+                                  class="gridSlaveBtnDisabled"
+                                  onclick="{!c.fnSelling}"
+                                  disabled="{!v.salesSaveBtnDisabled}"/>
+
+                                  <lightning:button title="Excel" label="Excel"
+                                  iconName="doctype:excel" onclick="{!c.downloadExcel}" />
+
+        </li>
+    </ul>
+
+    <div class="gridMaster" style="height:300px;">
+<!--        <lightning:datatable-->
+<!--                aura:id="orderListDt"-->
+<!--                columns="{!v.columns}"-->
+<!--                data="{!v.data}"-->
+<!--                keyField="Id"-->
+<!--                onrowselection="{!c.fnSeleceted}"-->
+<!--                showRowNumberColumn="true"-->
+<!--                maxRowSelection="1"-->
+<!--                selectedRows="{!v.orderListSelectedRows}"-->
+<!--                onsave="{! c.fnHandleSave }"-->
+<!--                oncellchange="{!c.fnGetDraft}"-->
+<!--                onrowaction="{!c.handleRowAction}"-->
+<!--                suppressBottomBar="true"-->
+<!--                enableInfiniteLoading="{!greaterthan(v.totalRecord, v.data.length)}"-->
+<!--                onloadmore="{!c.fnLoadMore}"-->
+
+<!--                onsort="{!c.updateColumnSorting}"-->
+<!--                sortedBy="{!v.sortedBy}"-->
+<!--                sortedDirection="{!v.sortedDirection}"-->
+<!--        />-->
+        <aura:if isTrue="{!v.showSpinnerForOrderList}">
+            <div>
+                <lightning:spinner variant="brand" alternativeText="Waiting" size="medium"/>
+            </div>
+        </aura:if>
+        <c:EXWijmo aura:id="wijmo_EXIntegrationOrderList" onmessage="{!c.onWijmoMessage}"
+                   stub="{! 'EXIntegrationOrderList'}" css="{! 'EXWijmoReconciled'}"/>
+    </div>
+    <div class="slds-m-top_x-small">
+        <span>총 {!v.totalRecord} 건</span>
+    </div>
+
+                    <!--            <div class="slds-text-align_right">-->
+                    <!--                <lightning:button class="slds-m-top_small slds-m-right_medium"-->
+                    <!--                                  title="소모품 주문" label="소모품 주문" variant="destructive"-->
+                    <!--                                  disabled="{!v.data.length == 0}" onclick="{!c.fnSave}"/>-->
+
+
+    <!-- 주문 리스트 모달 -->
+    <!-- <aura:if isTrue="{!v.ShowOrderListModal}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_large"
+                 style="z-index:9001">
+            <div class="slds-modal__container">
+
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseOrderListModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">주문 리스트</h2>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium modalBody" style="height:430px"
+                     id="modal-content-id">
+                    <div class="searchCompsWrap">
+                        <div class="searchConWrap">
+                            <div class="testFlex1">
+                                <div class="slds-grid slds-wrap slds-gutters_xx-small searchinner"
+                                     onkeyup="{!c.fnOrderListEnter}">
+                                    <aura:if isTrue="{!v.showSpinner}">
+                                        <div>
+                                            <lightning:spinner variant="brand" alternativeText="Waiting"/>
+                                        </div>
+                                    </aura:if>
+                                    <div class="slds-col slds-size_2-of-12">
+                                        <lightning:select label="주문채널" name=""
+                                                          value="{!v.mapSearchOrderParam.orderChannel}" required="true">
+                                            <option value="ALL">ALL</option>
+                                            <aura:iteration items="{!v.mapSettingValue.Comm.listOrderChannel}"
+                                                            var="item">
+                                                <option value="{!item.value}">{!item.label}</option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                    <div class="slds-col slds-size_2-of-12">
+                                        <lightning:select label="사업부" name=""
+                                                          value="{!v.mapSearchOrderParam.department}">
+                                            <option value="ALL">ALL</option>
+                                            <aura:iteration items="{!v.mapSettingValue.Comm.listDepartment}" var="item">
+                                                <option value="{!item.value}">{!item.label}</option>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                    <div class="slds-col slds-size_2-of-12">
+                                        <lightning:input label="주문번호" name="searchPartNo"
+                                                         value="{!v.mapSearchOrderParam.orderNo}"/>
+                                    </div>
+                                    <div class="slds-col slds-size_4-of-12">
+                                        <ul class="periodWrap">
+                                            <li>
+                                                <lightning:input type="date" name="searchSDate"
+                                                                 value="{!v.mapSearchOrderParam.baseDateStart}"
+                                                                 label="주문일시" required="true"/>
+                                            </li>
+                                            <li>~</li>
+                                            <li>
+                                                <lightning:input type="date" name="searchEDate"
+                                                                 value="{!v.mapSearchOrderParam.baseDateEnd}"
+                                                                 label="주문일시" variant="label-hidden"/>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="slds-grid slds-wrap slds-gutters_xx-small searchinner"
+                                     onkeyup="{!c.fnOrderListEnter}">
+                                    <div class="slds-col slds-size_2-of-12">
+                                        <lightning:input label="고객명" type="text" name=""
+                                                         value="{!v.mapSearchOrderParam.contactName}"/>
+                                    </div>
+                                    <div class="slds-col slds-size_2-of-12">
+                                        <lightning:input label="전화번호" type="text" name=""
+                                                         value="{!v.mapSearchOrderParam.contactPhone}"
+                                                         onchange="{!c.fnPhoneChg}"/>
+                                    </div>
+                                    <div class="slds-col slds-size_2-of-12">
+                                        <lightning:input label="CJ 출고번호" type="text" name=""
+                                                         value="{!v.mapSearchOrderParam.CJOrderNo}"/>
+                                    </div>
+                                    <div class="slds-col slds-size_4-of-12 vtalignMT">
+                                        CJ 전송여부
+                                        <div class="slds-grid slds-wrap">
+                                            <div class="slds-col slds-size_1-of-11">
+                                                <lightning:input label="Y" name="searchPartNo" type="checkbox"
+                                                                 checked="{!v.mapSearchOrderParam.CJOrderY}"
+                                                                 class="slds-show_inline-block"/>
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-11">
+                                                <lightning:input label="N" name="searchPartNo" type="checkbox"
+                                                                 checked="{!v.mapSearchOrderParam.CJOrderN}"
+                                                                 class="slds-show_inline-block"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="searchBtnWrap">
+                                        <lightning:button label="조회" iconName="utility:search" iconPosition="left"
+                                                          onclick="{!c.fnOrderListSearch}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <lightning:layout multipleRows="true" class="con">
+                        <lightning:layoutItem size="12" class="slds-m-right_x_small">
+                            <div class="slds-p-top_x-small" style="z-index:1;">
+                                <lightning:card class="slds-col slds-card_boundary" title="주문 리스트">
+                                    <div style="height:30vh">
+                                        <lightning:datatable
+                                                columns="{!v.closeModalOrderColumns}"
+                                                data="{!v.listOrder}"
+                                                keyField="sProductItemId"
+                                                onrowselection="{!c.fnOrderListSelected}"
+                                                maxRowSelection="1"
+                                                enableInfiniteLoading="true"
+                                                maxColumnWidth="100px"/>
+                                    </div>
+                                </lightning:card>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="수취인 변경" onclick="{!c.fnOrderListUpdateModal}"/>
+                    <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseOrderListModal}"/>
+                </footer>
+
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" style="z-index:9000"></div>
+    </aura:if> -->
+
+    <!-- 주문 상태 변경 모달 -->
+    <aura:if isTrue="{!v.showOrderStChangeModal}">
+
+<!--        <aura:if isTrue="{!v.showSpinner}" >-->
+<!--            -->
+<!--        </aura:if>-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_large"
+                 style="z-index:9001">
+            <div class="slds-modal__container">
+
+                <!-- c:EX_ComponentTemplate height="300" body="{!v.body}" footer="{!v.footer}" isWide="{!v.isWide}" isMiddle="{!v.isMiddle}" isSmall="{!v.isSmall}" title="주문 리스트" hasSelfFooter="true" -->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseOrderStChangeModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">주문 상태 변경</h2>
+                    <!-- 2023.08.01 seung yoon heo 문구 추가 -->
+                    <span style="float: right;">사유를 입력해야 저장 버튼이 활성화 됩니다.</span>
+                </header>
+
+                <div class="slds-modal__content" style="height:55vh;" id="modal-content-id">
+                    <aura:if isTrue="{!v.showSpinner}" >
+                        <lightning:spinner variant="brand" alternativeText="Waiting" size="medium"/>
+                    </aura:if>
+                    <div class="slds-p-around_medium" style="height:75%;">
+<!--                        <lightning:datatable aura:id="orderStChangeDT"-->
+<!--                                             class="orderStatusChangeDT"-->
+<!--                                             columns="{!v.orderStChangeColumns}"-->
+<!--                                             data="{!v.selectedRowsForStChg}"-->
+<!--                                             keyField="Id"-->
+<!--                                             onrowselection="{!c.fnSelected}"-->
+<!--                                             selectedRows="{!v.preSelectedRows}"-->
+<!--                                             maxRowSelection="1"-->
+<!--                                             suppressBottomBar="true"/>-->
+                        <c:EXWijmo aura:id="wijmo_EXOrderStChange" onmessage="{!c.onWijmoMessage}"
+                                   stub="{! 'EXOrderStChange'}" css="{! 'EXWijmoReconciled'}"/>
+                    </div>
+                    <div style="height:45%; overflow:auto;" class="slds-p-around_medium">
+                        <div style="display:flex; margin-left: 0 !important"
+                         class=" cBox ml_12 bgLightGray ">
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pr_24 pl_12">
+                            <!--결제자 Start-->
+                            <ul class="detailDataInner">
+                                <!--                                <li>결제자</li>-->
+                                <div class="profileBoxTtl slds-m-right_medium">
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                </div>
+                                <li>
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input1-1"-->
+<!--                                                         readonly="true"-->
+<!--                                                         label="고객명"-->
+<!--                                                         value="{!v.stChangeTargetObj.CustomerName}"/>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input1-2"-->
+<!--                                                         readonly="true"-->
+<!--                                                         label="수취인주소"-->
+<!--                                                         value="{!v.stChangeTargetObj.CONSIGNEE_Address}"/>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input1-3"-->
+<!--                                                         readonly="{!v.deliveryCompanyReadOnly}"-->
+<!--                                                         label="택배사"-->
+<!--                                                         value="{!v.stChangeTargetObj.DeliveryCompany}"/>-->
+<!--                                    </div>-->
+                                    <div>
+                                        <lightning:input name="input1-1"
+                                                         readonly="true"
+                                                         label="주문상태"
+                                                         value="{!empty(v.stChangeTargetObj) ? '' : '상품준비중'}"/>
+<!--                                        <lightning:select aura:id="orderStatusSelect"-->
+<!--                                                          name="input1-1"-->
+<!--                                                          label="주문상태"-->
+<!--                                                          readonly="{!v.orderStatusReadOnly}"-->
+<!--                                                          onchange="{!c.orderStatusChange}"-->
+<!--                                                          onfocus="{!c.orderStatusFocus}"-->
+<!--                                                          value="">-->
+<!--                                            <aura:iteration items="{!v.orderStatusList}" var="item">-->
+<!--                                                <option text="{!item}" value="{!item}"/>-->
+<!--                                            </aura:iteration>-->
+<!--                                        </lightning:select>-->
+                                        <!--                                        <lightning:input name="input1-4"-->
+                                        <!--                                                         readonly="true"-->
+                                        <!--                                                         label="주문상태"-->
+                                        <!--                                                         value=""/>-->
+                                    </div>
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input1-5"-->
+<!--                                                         readonly="{!v.changeReasonReadOnly}"-->
+<!--                                                         label="변경사유"-->
+<!--                                                         onblur="{!c.changeTextField}"-->
+<!--                                                         value="{!v.stChangeTargetObj.HandWorkReason}"/>-->
+<!--                                    </div>-->
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pl_24 pr_12">
+                            <!--받는분 Start-->
+                            <ul class="detailDataInner">
+                                <!--                                <li>받는분</li>-->
+                                <div class="profileBoxTtl slds-m-right_medium">&nbsp;</div>
+                                <li>
+                                    <div>
+                                        <lightning:input name="input2-1"
+                                                         readonly="true"
+                                                         label="변경사유"
+                                                         onblur="{!c.changeTextField}"
+                                                         value="{!v.stChangeTargetObj.HandWorkReason}"/>
+                                    </div>
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input2-1"-->
+<!--                                                         readonly="true"-->
+<!--                                                         label="받는분"-->
+<!--                                                         value="{!v.stChangeTargetObj.CONSIGNEE_Name}"/>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input2-2"-->
+<!--                                                         readonly="true"-->
+<!--                                                         label="수취인주소상세"-->
+<!--                                                         value="{!v.stChangeTargetObj.CONSIGNEE_Address_Detail}"/>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input2-3"-->
+<!--                                                         readonly="{!v.trackingNumberReadOnly}"-->
+<!--                                                         label="송장번호"-->
+<!--                                                         onblur="{!c.changeTextField}"-->
+<!--                                                         value="{!v.stChangeTargetObj.TrackingNumber}"/>-->
+<!--                                    </div>-->
+<!--                                    <div>-->
+<!--                                        <lightning:input name="input2-4"-->
+<!--                                                         readonly="{!v.deliveryDateReadOnly}"-->
+<!--                                                         label="배송중일시"-->
+<!--                                                         value=""/>-->
+<!--                                    </div>-->
+                                </li>
+                            </ul>
+                        </div>
+                        <!--                    <div class="slds-p-around_medium" style="height:45%;" >-->
+                        <!--                        <lightning:input type="text" value="test"/>-->
+                        <!--                    </div>-->
+                    </div>
+                    </div>
+                    <!-- /aura:set -->
+                    <!-- footer -->
+                    <!-- aura:set attribute="footer" -->
+                </div>
+                <footer class="slds-modal__footer">
+                    <!--                    <lightning:button label="test" onclick="{!c.testAction}"/>-->
+                    <lightning:button variant="neutral" label="취소" onclick="{!c.fnCloseOrderStChangeModal}"/>
+                    <lightning:button variant="destructive" label="저장"
+                                      onclick="{!c.fnSave}"
+                                      disabled="{!or(empty(v.stChangeTargetObj), empty(v.stChangeTargetObj.HandWorkReason))}"/>
+                </footer>
+                <!-- /aura:set -->
+                <!-- /c:EX_ComponentTemplate -->
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" style="z-index:9000"></div>
+    </aura:if>
+
+    <!--    <aura:if isTrue="{!v.showOrderCancelModal}">-->
+    <!--        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true" aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_medium">-->
+    <!--            <div class="slds-modal__container">-->
+    <!--                <header class="slds-modal__header">-->
+    <!--                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close" variant="bare-inverse" class="slds-modal__close"-->
+    <!--                                          onclick="{!c.fnCloseOrderCancelModal}"/>-->
+    <!--                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">주문 취소</h2>-->
+    <!--                </header>-->
+
+    <!--                &lt;!&ndash; Content &ndash;&gt;-->
+    <!--                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">-->
+    <!--                    &lt;!&ndash; 주문 취소 리스트 &ndash;&gt;-->
+    <!--                    <div class="slds-var-m-around_large">-->
+    <!--                        <lightning:datatable columns="{!v.orderCancelColumns}"-->
+    <!--                                             data="{!v.data}"-->
+    <!--                                             keyField="sProductItemId"-->
+    <!--                                             suppressBottomBar="true"-->
+    <!--                                             hideCheckboxColumn="true"/>-->
+    <!--                    </div>-->
+    <!--                </div>-->
+    <!--                &lt;!&ndash; footer &ndash;&gt;-->
+    <!--                <footer class="slds-modal__footer">-->
+    <!--                    <lightning:button variant="neutral" label="취소" onclick="{!c.fnCloseOrderCancelModal}"/>-->
+    <!--                    <lightning:button variant="neutral" label="저장" onclick="{!c.fnCloseOrderCancelModal}"/>-->
+    <!--                </footer>-->
+    <!--            </div>-->
+    <!--        </section>-->
+    <!--        <div class="slds-backdrop slds-backdrop_open"></div>-->
+    <!--    </aura:if>-->
+
+    <!-- 반품 모달 -->
+    <!-- <aura:if isTrue="{!v.showReturnOrderModal}">
+
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_large">
+
+            <div class="slds-modal__container">
+                
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseReturnOrderModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">반품 요청</h2>
+                </header>
+
+
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+                    <h2 class="slds-card__header-title">고객 정보</h2>
+
+                    <div style="display:flex; margin-left: 0 !important"
+                         class="gridWrap cBox ml_12 bgLightGray slds-p-around_medium">
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pr_24 pl_12">
+                            
+                            <ul class="detailDataInner">
+                            
+                                <div class="profileBoxTtl slds-m-right_medium">
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                </div>
+                                <li>
+                                    <div>
+                                        <lightning:input name="input1-1"
+                                                         readonly="true"
+                                                         label="고객명"
+                                                         value="{!v.contactConsigneeInfo.ContactName}"
+                                        />
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         label="전화번호"
+                                                         value="{!v.contactConsigneeInfo.ContactMobilePhone}"
+                                                         class="" readonly="true"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         readonly="true"
+                                                         label="고객주소"
+                                                         value="{!v.contactConsigneeInfo.ContactAddress}"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         readonly="true"
+                                                         label="고객상세주소"
+                                                         value="{!v.contactConsigneeInfo.ContactDetailAddress}"/>
+                                    </div>
+                                    <div>
+
+                                    </div>
+                                    <div>
+                                        <aura:if isTrue="{!v.caseInfo.CaseId != null}">
+                                            <lightning:textarea name="input1" label="상담이력"
+                                                                class="text_area_height slds-m-top_x-large"
+                                                                value="{!v.caseDescriptionByReturnRequest}"
+                                                                disabled="true"
+                                            />
+                                        </aura:if>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pl_24 pr_12">
+                            
+                            <ul class="detailDataInner">
+
+                                <li>
+                                    <div>
+                                        <lightning:input name="input2-1"
+                                                         label="수취인명"
+                                                         value="{!v.contactConsigneeInfo.ConsigneeName}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"/>
+                                    </div>
+                                    <div>
+
+                                        <lightning:input name="input2-3"
+                                                         label="수취인 전화번호"
+                                                         value="{!v.contactConsigneeInfo.ConsigneePhone}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"/>
+                                    </div>
+                                    <aura:if isTrue="{!not(v.isSameContactByReturnRequest)}">
+                                        <div class="slds-grid">
+
+                                            <lightning:input name="input2-4"
+                                                             label="수취인 주소"
+                                                             value="{!v.newAddress}"
+                                                             disabled="true" class="width_80"/>
+                                            
+
+
+                                            <lightning:button class="btn_tm" label="검색" title="검색"
+                                                              onclick="{!c.fnAddressSearch}"/>
+
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div>
+                                                <lightning:input name="input2-4"
+                                                                 label="수취인 주소"
+                                                                 value="{!v.contactConsigneeInfo.ConsigneeAddress}"
+                                                                 disabled="{!v.isSameContactByReturnRequest}"/>
+                                                
+
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+
+                                    <div>
+
+                                        <lightning:input name="input2-4"
+                                                         label="수취인 상세 주소"
+                                                         value="{!v.contactConsigneeInfo.ConsigneeDetailAddress}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input type="checkbox" label="결제자 정보와 동일"
+                                                         class="slds-m-top_small"
+                                                         value="{!v.isSameContactByReturnRequest}"
+                                                         checked="{!v.isSameContactByReturnRequest}"
+                                                         onchange="{!c.fnInitializeConsigneeInformation}"/>
+                                    </div>
+                                    <div>
+                                        <aura:if isTrue="{!v.caseInfo.CaseId != null}">
+                                            <lightning:textarea name="input1"
+                                                                class="text_area_height"
+                                                                value="{!v.appendRemarkByReturnRequest}"
+                                                                placeholder="상담이력 입력..."
+                                            />
+                                        </aura:if>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <h2 class="slds-card__header-title">주문 정보 </h2>
+                            <lightning:input type="checkbox" label="반품사유동일"
+                                             class="slds-m-top_small slds-text-align_right"
+                                             value="{!v.isSameReturnRequestReason}"
+                                             checked="{!v.isSameReturnRequestReason}"/>
+                    <div class="slds-var-m-around_large">
+                        <lightning:datatable
+                                aura:id="returnDataTable"
+                                columns="{!v.returnOrderColumns}"
+                                data="{!v.productRequestLineItemsByReturnRequest}"
+                                keyField="Id"
+                                suppressBottomBar="true"
+                                oncellchange="{!c.fnChkReturnVal}"
+                                hideCheckboxColumn="true"
+                        />
+                    </div>
+
+                    
+                    <h2 class="slds-card__header-title" style="margin-top: 25px;">가상계좌 환불정보</h2>
+                    <div class="slds-var-m-around_large">
+                        <lightning:input label="예금주명" class="slds-size_4-of-12" placeholder="홍길동"/>
+                        <lightning:select aura:id="select_bank_code" label="은행코드" value="{!v.bankCode}"
+                                          class="slds-size_4-of-12">
+                            <aura:iteration items="{!v.bankOptions}" var="option">
+                                <option text="{!option.label}" value="{!option.value}"></option>
+                            </aura:iteration>
+                        </lightning:select>
+                        <lightning:input label="계좌번호" class="slds-size_4-of-12" placeholder="XXXXXX-YY-ZZZZZC"/>
+                        <div class="slds-size_2-of-12" style="margin-top:10px;">
+                            <lightning:button variant="neutral" label="계좌검증"/>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="취소" onclick="{!c.fnCloseReturnOrderModal}"/>
+                    <lightning:button variant="brand" label="반품 요청" onclick="{!c.fnRequestReturnOrder}"/>
+                </footer>
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if> -->
+
+    <!-- 교환요청 모달 -->
+    <!-- <aura:if isTrue="{!v.showExchangeModal}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_large"
+                 style="z-index:9000">
+            <div class="slds-modal__container">
+                
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseExchangeModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">교환 요청</h2>
+                </header>
+
+                
+                <div class="slds-modal__content slds-p-around_medium " id="modal-content-id">
+                    <h2 class="slds-card__header-title">교환 반품 대상</h2>
+                    <div class="slds-var-m-around_large">
+                        <lightning:datatable
+                                columns="{!v.exchangeOrderListColumns}"
+                                data="{!v.data}"
+                                keyField="sProductItemId"
+                                suppressBottomBar="true"
+                                oncellchange="{!c.fnChkVal}"
+                                hideCheckboxColumn="true"
+                        />
+                    </div>
+                    <h2 class="slds-card__header-title" style="margin-top: 25px;">가상계좌 환불정보</h2>
+                    <div class="slds-var-m-around_large">
+                        <lightning:input label="예금주명" class="slds-size_4-of-12" placeholder="홍길동"/>
+                        <lightning:select aura:id="select_bank_code" label="은행코드" value="{!v.bankCode}"
+                                          class="slds-size_4-of-12">
+                            <aura:iteration items="{!v.bankOptions}" var="option">
+                                <option text="{!option.label}" value="{!option.value}"></option>
+                            </aura:iteration>
+                        </lightning:select>
+                        <lightning:input label="계좌번호" class="slds-size_4-of-12" placeholder="XXXXXX-YY-ZZZZZC"/>
+                        <div class="slds-size_2-of-12" style="margin-top:10px;">
+                            <lightning:button variant="neutral" label="계좌검증"/>
+                        </div>
+                    </div>
+                    <h2 class="slds-card__header-title">교환 주문</h2>
+                    <div class="slds-var-m-around_large">
+                        <lightning:datatable
+                                columns="{!v.exchangeOrderListColumns}"
+                                data="{!v.data}"
+                                keyField="sProductItemId"
+                                suppressBottomBar="true"
+                                oncellchange="{!c.fnChkVal}"
+                                hideCheckboxColumn="true"
+                        />
+                    </div>
+                </div>
+
+                
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="취소" onclick="{!c.fnCloseExchangeModal}"/>
+                    <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseExchangeModal}"/>
+                </footer>
+            </div>
+        </section>
+
+        
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if> -->
+
+    <!-- 수취인 정보 변경 모달 -->
+    <!-- <aura:if isTrue="{!v.showOrderListUpdateModal}">
+
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01"
+                 class="slds-modal slds-fade-in-open slds-modal_small" style="z-index:9002">
+            <div class="slds-modal__container_small">
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseOrderListUpModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">수취인 정보변경</h2>
+                </header>
+                <div class="slds-modal__content " style="height:210px">
+                    <div class="gridSlaveInner" style="height:100%">
+                        <div class="c-container" style="display:flex">
+                            <div style="display:flex; margin-left: 0 !important"
+                                 class="gridWrap cBox ml_12 bgLightGray slds-p-around_medium">
+                                <div class="slds-col slds-size_6-of-12 detailInfoWrap pr_24 pl_12">
+                                    
+                                    <ul class="detailDataInner">
+                                    
+                                        <div class="profileBoxTtl slds-m-right_medium">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        </div>
+                                        <li>
+                                            <div class="wrapFlex">
+                                                <lightning:input name="input1-1" readonly="true" label="수취인명"
+                                                                 value="{!v.productRequestLineItem.CONSIGNEE_Name}"/>
+                                                <lightning:input name="input1-2" readonly="true" label="전화번호"
+                                                                 value="{!v.productRequestLineItem.CONSIGNEE_Phone}"/>
+                                            </div>
+
+                                            <div>
+                                                <lightning:input name="input3-1" readonly="true" label="주소"
+                                                                 value="{!v.productRequestLineItem.CONSIGNEE_Address}"/>
+                                            </div>
+                                            <div>
+                                                <lightning:input name="input1-3" readonly="true" label="상세주소"
+                                                                 value="{!v.productRequestLineItem.CONSIGNEE_Address_Detail}"/>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 detailInfoWrap pr_24 pl_12">
+                                    
+                                    <ul class="detailDataInner">
+                                        
+                                        <div class="profileBoxTtl slds-m-right_medium">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        </div>
+                                        <li>
+                                            <div class="wrapFlex">
+                                                <lightning:input name="input1-1" label="수취인명" value="{!v.newName}"
+                                                                 onchange="{!c.contactConsigneeChange}"/>
+                                                <lightning:input name="input1-2" label="전화번호" value="{!v.newPhone}"
+                                                                 onchange="{!c.fnPhoneChg}"/>
+                                            </div>
+
+                                            <div style="display:flex">
+                                                <lightning:input name="input3-1" disabled="true" label="주소"
+                                                                 value="{!v.newAddress}"/>
+                                                <lightning:button class="btn_tm" label="검색" title="검색"
+                                                                  onclick="{!c.fnAddressSearch}"/>
+                                            </div>
+                                            <div>
+                                                <aura:if isTrue="{!v.newAddress ==''}">
+                                                    <lightning:input name="input1-3" readonly="true" label="상세주소"
+                                                                     value="{!v.newDetailAddress}"/>
+                                                        <aura:set attribute="else">
+                                                            <lightning:input name="input1-3"  label="상세주소"
+                                                                             value="{!v.newDetailAddress}"/>
+                                                        </aura:set>
+                                                </aura:if>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                            </div>
+
+        
+                        </div>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="저장" onclick="{!c.fnchangeConsignee}"/>
+                    <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseOrderListUpModal}"/>
+                </footer>
+            </div>
+
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" style="z-index:9001" role="presentation"></div>
+    </aura:if> -->
+
+<!--    <div style="height:0 !important; width:0 !important; border:0;border:none;visibility:hidden !important;">-->
+<!--        <iframe id="vfFrame" aura:id="vfFrame"-->
+<!--                src="{! 'https://' + v.vfHost + '/apex/DaumAddress'}"/>-->
+<!--    </div>-->
+    <!--  배송/송장 정보 모달 -->
+
+    <aura:if isTrue="{!v.showDeliveryInformationModal}">
+        <!--Lightning Spinner-->
+        <aura:if isTrue="{!v.showSpinner}">
+            <div>
+                <lightning:spinner variant="brand" alternativeText="Waiting" size="medium"/>
+            </div>
+        </aura:if>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_small">
+
+            <div class="slds-modal__container">
+                <!-- Header -->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseDeliveryInformationModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">배송/송장 정보</h2>
+                </header>
+
+                <!-- Content -->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+<!--                    위즈모 라이센스로 인해 300px추가-->
+                    <div class="slds-var-m-around_large" style="height:300px">
+<!--                        <lightning:datatable-->
+<!--                                aura:id="returnDataTable"-->
+<!--                                columns="{!v.deliveryInformationOrderColumns}"-->
+<!--                                data="{!v.deliveryInformationData}"-->
+<!--                                keyField="Id"-->
+<!--                                suppressBottomBar="true"-->
+<!--                                hideCheckboxColumn="true"-->
+<!--                        />-->
+                        <c:EXWijmo aura:id="wijmo_EXdeliveryInfo" onmessage="{!c.onWijmoMessage}"
+                                   stub="{! 'EXdeliveryInfo'}" css="{! 'EXWijmoReconciled'}"/>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseDeliveryInformationModal}"/>
+                </footer>
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+
+
+
+    <!-- Public Model 모달 -->
+    {!v.modalContent}
+</aura:component>

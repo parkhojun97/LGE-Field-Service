@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_RequestParts_evt">
+    <aura:attribute name="isLocked" type="Boolean"/>
+</aura:event>

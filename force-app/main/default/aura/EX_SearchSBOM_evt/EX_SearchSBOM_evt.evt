@@ -1,0 +1,11 @@
+<aura:event type="APPLICATION" description="EX_SearchSBOM_evt" access="global">
+    <aura:attribute name="pSbomId"	         type="Id"      description="선택한 vSBOM의 ID"/>
+    <aura:attribute name="pPartId"	         type="Id"      description="선택한 SBOM의 ID"/>
+    <aura:attribute name="pDivCode"	         type="String"      description="선택한 SBOM PART 사업부"/>
+    <aura:attribute name="pPartNo"	         type="String"      description="선택한 SBOM PART NO"/>
+    <aura:attribute name="pModelName"             type="String"      description="선택한 SBOM 모델명"/>
+    <aura:attribute name="pPartDesc"	         type="String"      description="선택한 SBOM 품명"/>
+    <aura:attribute name="pPartSpec"	         type="String"      description="선택한 SBOM PART 규격"/>
+    <aura:attribute name="pisSBOM"	         type="boolean"      description=""/>
+    <aura:attribute name="selectedSBOM" type="Object" description="선택한 SBOM"/>
+</aura:event>

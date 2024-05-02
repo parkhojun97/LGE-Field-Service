@@ -1,0 +1,236 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-01-03.
+ -->
+
+ <aura:component
+ implements="force:appHostable,flexipage:availableForAllPageTypes"
+ controller="EX_IntegrationOrderManagementController"
+ description="EX_IntegrationOrderManagement">
+
+<lightning:workspaceAPI aura:id="workspace"/>
+
+<aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+<!-- Infinite Loading Datatable -->
+<!-- Datatable에 처음 조회 및 more Load는 recordLimit Attribute로 조절 -->
+<aura:attribute name="totalRecord" type="Integer" default="0" />
+<aura:attribute name="recordLimit" type="Integer" default="50" />
+<aura:attribute name="pageOffset" type="Integer" default="0" />
+<aura:handler event="c:EX_PaginationResearch_evt" action="{!c.reSearchOrderNumber}" />
+
+
+<!-- 팝업을 열기위한 overlayLib -->
+<lightning:overlayLibrary aura:id="overlayLib"/>
+<aura:attribute name="showSpinner" type="Boolean" default="false"/>
+<aura:attribute name="mapSettingValue" type="Map" default="{}" description="화면 조회조건에 세팅될 값 (Origin과는 별개)"/>
+<aura:attribute name="mapSettingValueOrigin" type="Map" default="{}"
+             description="화면에 조회조건 세팅값을 위한 세팅데이터 원본(Init시에 가져오고 변경하지 않을 것."/>
+<aura:attribute name="mapSearchParam" type="Map" default="{}"/>
+<aura:attribute name="isShowedFilter" type="Boolean" default="true"/>
+
+<aura:attribute name="save_disable" type="Boolean" default="false" description="저장버튼 비활성화 여부"/>
+
+<!-- table_ReleaseProcessing -->
+<aura:attribute name="listPR" type="List" default="[]" description="ProductRequest Data List"/>
+<aura:attribute name="listPRLI" type="List" default="[]" description="ProductRequestLineItem Data List"/>
+<aura:attribute name="columns" type="List" default="[]" description="Columns List"/>
+
+<!-- Public Model Modal -->
+<aura:attribute name="modalContent" type="Aura.Component"/>
+<aura:attribute name="activeSections" type="List" default="['A','B']"/>
+<aura:attribute name="activeSectionsMessage" type="String" default=""/>
+<!-- 판매 완료 여부 checkboxGroup Option -->
+<aura:attribute name="saleCompleteOptions" type="List" default="[{'label':'Y', 'value':'Y'}, {'label':'N', 'value':'N'}]" />
+<!--    <aura:attribute name="saleCompleteYNList" type="List" default="" />-->
+
+<aura:registerEvent name="EX_IntegrationOrderManagement_evt" type="c:EX_IntegrationOrderManagement_evt"/>
+
+<!--23 09 06 hyungho.chun 리스트 라벨 형태로 속도 테스트-->
+<aura:attribute name="listAppointmentStatus" type="List" default="[]"/>
+<aura:attribute name="listDepartment" type="List" default="[]"/>
+<aura:attribute name="listOrderChannel" type="List" default="[]"/>
+<aura:attribute name="listOrderStatusCode" type="List" default="[]"/>
+
+<div>
+ <!--Lightning Spinner-->
+ <aura:if isTrue="{!v.showSpinner}">
+     <lightning:spinner variant="brand" alternativeText="Waiting"/>
+ </aura:if>
+ <lightning:layout multipleRows="true" class="con">
+     <!-- 신규 조회영역 Start-->
+     <lightning:layoutItem size="12" padding="horizontal-small" class="searchWrap">
+         <div class="topTtl">
+             <p>소모품통합주문관리</p>
+         </div>
+         <div class="searchCompsWrap">
+             <div class="searchConWrap" onkeyup="{!c.fnEnter}">
+                 <div class="testFlex1">
+                     <div class="slds-grid slds-wrap slds-gutters_xx-small searchinner" >
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:select label="주문채널" name="" value="{! v.mapSearchParam.orderChannel}" required="true" >
+                                 <option value="ALL">ALL</option>
+                                 <aura:iteration items="{! v.listOrderChannel }" var="item">
+                                 <!-- <aura:iteration items="{! v.mapSettingValue.Comm.listOrderChannel }" var="item"> -->
+                                     <option value="{!item.value}">{!item.label}</option>
+                                 </aura:iteration>
+                             </lightning:select>
+                         </div>
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:select label="주문상태" name="" value="{! v.mapSearchParam.orderStatus }">
+                                 <option value="">ALL</option>
+                                 <aura:iteration items="{! v.listOrderStatusCode }" var="item">
+                                 <!-- <aura:iteration items="{! v.mapSettingValue.Comm.listOrderStatusCode }" var="item"> -->
+                                     <option value="{!item.value}">{!item.label}</option>
+                                 </aura:iteration>
+                             </lightning:select>
+                         </div>
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:input label="주문번호" name="searchPartNo"
+                                              value="{!v.mapSearchParam.orderNo}"/>
+                         </div>
+
+                         <!-- 23.02.06 조건 추가 끝 -->
+
+                         <div class="slds-col slds-size_2-of-12">
+                             <!--Period input Start-->
+                             <ul class="periodWrap">
+                                 <li>
+                                     <lightning:input type="date" name="searchSDate" required="true"
+                                                      value="{!v.mapSearchParam.baseDateStart}"
+                                                      label="주문기간"/>
+                                 </li>
+                                 <li>~</li>
+                                 <li>
+                                     <lightning:input type="date" name="searchEDate" required="true"
+                                                      value="{!v.mapSearchParam.baseDateEnd}" label="기준일자"
+                                                      variant="label-hidden"/>
+                                 </li>
+                             </ul>
+                         </div>
+
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:input label="고객명" type="text" name=""
+                                              value="{! v.mapSearchParam.contactName }"/>
+                         </div>
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:input label="전화번호" name="" type="text"
+                                              value="{! v.mapSearchParam.contactPhone }" onchange="{!c.fnPhoneChg}"/>
+                         </div>
+                     </div>
+                     <div class="slds-grid slds-wrap slds-gutters_xx-small searchinner" >
+                         <!-- 23.02.06 조건 추가 시작 -->
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:select label="약속상태" value="{!v.mapSearchParam.appointmentStatus}">
+                                 <option value="">ALL</option>
+                                 <aura:iteration items="{!v.listAppointmentStatus }" var="item">
+                                 <!-- <aura:iteration items="{! v.mapSettingValue.Comm.listAppointmentStatus }" var="item"> -->
+                                     <option value="{!item.value}">{!item.label}</option>
+                                 </aura:iteration>
+                             </lightning:select>
+                         </div>
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:select label="사업부" name="" value="{! v.mapSearchParam.department }">
+                                 <option value="ALL">ALL</option>
+                                 <aura:iteration items="{! v.listDepartment }" var="item">
+                                 <!-- <aura:iteration items="{! v.mapSettingValue.Comm.listDepartment }" var="item"> -->
+                                     <option value="{!item.value}">{!item.label}</option>
+                                 </aura:iteration>
+                             </lightning:select>
+                         </div>
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:input label="CJ주문번호" name="" value="{!v.mapSearchParam.cjOrderNumber}" />
+                         </div>
+                         <!-- 23.01.06 조건 추가 끝 -->
+                         <!-- 23.11.22 PHJ 판매번호 조건 추가 -->
+                         <div class="slds-col slds-size_1-of-12">
+                             <lightning:input label="판매번호" type="text" value="{!v.mapSearchParam.salesNo}" />
+                         </div>
+                         <!--23 12 20 hyungho.chun 송장번호로 조회-->
+                        <div class="slds-col slds-size_1-of-12">
+                            <lightning:input label="송장번호" type="text" value="{!v.mapSearchParam.invoiceNo}" />
+                        </div>
+                         <div class="slds-col slds-size_1-of-12 checkBoxMT" style="margin: 5px;">
+                             <span style="color:red;"> * </span>
+                             <span style="padding-top: 3px;">판매완료여부</span>
+                             <ul class="slds-list_horizontal" style="padding-left: 4px;">
+                                 <li><lightning:input type="checkbox" label="Y"
+                                                      name="isSalesCompleteY"
+                                                      checked="{!v.mapSearchParam.isSalesCompleteY}"/>
+                                 </li>
+                                 <li><lightning:input type="checkbox" label="N"
+                                                      name="isSalesCompleteN"
+                                                      checked="{!v.mapSearchParam.isSalesCompleteN}"/>
+                                 </li>
+                             </ul>
+                         </div>
+
+                         <!-- 23.10.23 PHJ -->
+                         <div class="slds-col slds-size_1-of-12 checkBoxMT" style="margin: 5px;">
+                             <span style="padding-top: 3px;">판매수량 '0' 제외여부</span>
+                             <ul class="slds-list_horizontal" style="padding-left: 4px;">
+                                 <li><lightning:input type="checkbox"
+                                                  name="isSalesQtyNotZero"
+                                                  checked="{!v.mapSearchParam.isSalesQtyNotZero}"/>
+                                 </li>
+                             </ul>
+                         </div>
+
+<!--                                <div class="slds-col slds-m-middle_x_small">-->
+<!--                                    <lightning:input type="checkbox" label="판매완료"-->
+<!--                                                     name="isSalesCompleted" variant="label-inline"-->
+<!--                                                     checked="{!v.mapSearchParam.isSalesCompleted}"/>-->
+<!--                                </div>-->
+
+
+                     </div>
+
+
+                 </div>
+                 <div class="searchBtnWrap">
+                     <lightning:button label="조회" iconName="utility:search" iconPosition="left" onclick="{!c.fnSearch}"/>
+                 </div>
+             </div>
+         </div>
+
+     </lightning:layoutItem>
+     <!-- 신규 조회영역 End-->
+     <br/>
+     <!--신규 그리드 wrap 시작-->
+     <lightning:layoutItem size="12" padding="{!IF(v.isShowedFilter, 'horizontal-small', 'around-small')}">
+         <div class="slds-card_boundary">
+             <div class="slds-card gridWrap">
+                 <c:EX_IntegrationOrderList aura:id="orderList" mapSearchParam="{!v.mapSearchParam}" data="{!v.listPR}" showSpinner="{!v.showSpinner}"
+                                            totalRecord="{!v.totalRecord}"
+                                            recordLimit="{!v.recordLimit}"/>
+                 <div class="gridSlave">
+                     <p class="divider"></p>
+                     <div class="gridAccordianWap">
+                         <lightning:accordion
+                                 allowMultipleSectionsOpen="true"
+                                 onsectiontoggle="{! c.handleSectionToggle }"
+                                 activeSectionName="{! v.activeSections }">
+                         <div class="gridSlaveInner" style="height: 100%">
+                             <c:EX_IntegrationOrderDetailList mapSearchParam="{!v.mapSearchParam}" data="{!v.listPRLI}" showSpinner="{!v.showSpinner}" />
+                         </div>
+                         <c:EX_DownloadCSV />
+
+                         </lightning:accordion>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </lightning:layoutItem>
+         <!--Grid Wrap End-->
+     <!--신규 그리드 wrap 끝-->
+ </lightning:layout>
+ <!--저장 버튼 시작-->
+<!--        <div class="gridMasterBtnWrap slds-text-align_right slds-m-right_medium slds-m-top_medium">-->
+     <!--저장 버튼-->
+<!--            <lightning:button aura:id="btnSave" title="저장" label="저장" iconName="utility:save"-->
+<!--                              iconPosition="left" variant="brand" onclick="{!c.fnSave}"-->
+<!--                              disabled="{!v.save_disable}" class="btnSave"/>-->
+<!--        </div>-->
+ <!--저장 버튼 끝-->
+</div>
+<!-- Carton Label Pop -->
+{!v.modalContent}
+</aura:component>

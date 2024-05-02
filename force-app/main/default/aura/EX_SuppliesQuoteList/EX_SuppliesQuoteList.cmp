@@ -1,0 +1,250 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2022/12/25.
+ -->
+
+<aura:component controller="EX_SuppliesController" description="EX_SuppliesQuoteList">
+
+    <aura:import library="lightning:confirm" property="LightningConfirm"/>
+    <aura:attribute name="modalContent" type="Aura.Component"/>
+
+    <!-- Attribute   -->
+    <aura:attribute name="listSelectRows" type="List" default="[]"/>
+    <aura:attribute name="objSelected" type="Object"/>
+    <aura:attribute name="latePayment" type="boolean" default="false"/>
+    <aura:attribute name="IsPrint" type="boolean" default="true"/>
+
+<!--    <aura:attribute name="optionsBeforeDelivery" type="List" default="[-->
+<!--    {'label': '견적서', 'value': '견적서'},-->
+<!--    {'label': '사업자등록증', 'value': '사업자등록증'},-->
+<!--    {'label': '통장사본', 'value': '통장사본'}-->
+<!--    ]"/>-->
+
+<!--    <aura:attribute name="options" type="List" default="[-->
+<!--    {'label': '견적서', 'value': '견적서'},-->
+<!--    {'label': '명세서', 'value': '명세서'},-->
+<!--    {'label': '사업자등록증', 'value': '사업자등록증'},-->
+<!--    {'label': '통장사본', 'value': '통장사본'}-->
+<!--    ]"/>-->
+
+        <aura:attribute name="options" type="List" default="[]"/>
+
+
+<!--        <aura:attribute name="value" type="List" default="견적서"/>-->
+        <aura:attribute name="value" type="List" default=""/>
+
+
+    <aura:registerEvent name="EX_SuppliesOrderList_evt" type="c:EX_SuppliesOrderList_evt"/>
+    <aura:attribute name="columns" type="List" default="[]"/>
+    <aura:attribute name="data" type="List" default="[]"/>
+    <aura:attribute name="standardOrderData" type="List" default="[]"/>
+    <aura:attribute name="soldOutOrderData" type="List" default="[]"/>
+
+    <aura:attribute name="RCVRName" type="String" default=""/>
+    <aura:attribute name="RCVREmail" type="String" default=""/>
+    <aura:attribute name="Note" type="String" default=""/>
+    <aura:attribute name="documentId" type="String" default=""/>
+    <aura:attribute name="invoiceTempId" type="String" />
+    <aura:attribute name="idList" type="List" default="[]"/>
+
+    <aura:attribute  name="orderNumber" type="String" default=""/>
+
+    <aura:attribute name="stdConsumableOrderId" type="String" default=""/>
+    <aura:attribute name="soldOutConsumableOrderId" type="String" default=""/>
+
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="contactId" type="String"/>
+
+
+    <aura:attribute name="isEmployee" type="boolean" default="0" description="임직원 여부"/>
+    <aura:attribute name="discountType" type="String" default="0" description="할인 유형"/>
+    <aura:attribute name="stdOrderTotalDiscountAmount" type="currency" default="0" description="일반 주문 총 할인 금액"/>
+
+
+    <aura:attribute name="orderStatus" type="String"/>
+    <!-- 23.07.10 DKBMC 전형호 (명세서 체크박스 결함건) -->
+    <aura:attribute name="isSpecificationValid" type="Boolean"/>
+    <!--23 09 04 hyungho.chun-->
+    <aura:attribute name="isSpecificationChecked" type="Boolean" default="false"/>
+    <aura:attribute name="contactAddress" type="String" default=""/>
+
+    <!-- 2023.08.15 PHJ -->
+    <aura:attribute name="disabledNote" type="Boolean" default="false"/>
+    <aura:attribute name="emailChk" type="Boolean" default="true"/>
+    <aura:attribute name="lastChkVal" type="Integer" default="0"/>
+    <aura:attribute name="createEndTF" type="Boolean" default="false"/>
+    <aura:attribute name="isAllChk" type="Boolean" default="false"/>
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="emptyData" type="Boolean" default="false"/>
+    <!-- <aura:attribute name="modalTitle" type="String" default="견적서"/> -->
+
+    <!--    23.04.13 추가-->
+
+    <aura:attribute name="isManagement" type="Boolean" default="false" description="택배주문의 견적서인지 주문관리탭의 견적서인지 체크용"/>
+    <aura:attribute name="parentId" type="String"/>
+
+    <!-- Handler    -->
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    <aura:handler name="change" value="{!v.documentId}" action="{!c.handleValueChange}"/>
+    <!--    2023.04.17-->
+    <aura:handler name="refreshEvent" event="c:FN_RefreshEvt" action="{!c.handleValueChange}"/>
+
+
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                 aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open" style="height:80%; width:70%; margin-left:25%; margin-top:6%; z-index:103">
+<!--                 aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open" style="height:80%; width:90%; margin-left:6%; margin-top:6%; z-index:103">-->
+
+        <div style="width:70%">
+            <c:EX_ComponentTemplate height="150" body="{!v.body}" footer="{!v.footer}" isWide="{!v.isWide}" isMiddle="{!v.isMiddle}" isSmall="{!v.isSmall}" title="견적서 / 명세서" hasSelfFooter="true">
+                <!-- <c:EX_ComponentTemplate height="150" body="{!v.body}" footer="{!v.footer}" isWide="{!v.isWide}" isMiddle="{!v.isMiddle}" isSmall="{!v.isSmall}" title="{!v.modalTitle}" hasSelfFooter="true"> -->
+                    
+                    <aura:set attribute="body">
+                        <!-- 23.09.12 PHJ spinner -->
+                        <aura:if isTrue="{!v.showSpinner}" >
+                            <lightning:spinner variant="brand" alternativeText="Waiting" size="medium"/>
+                        </aura:if>
+                        <div class="checkBoxWrapT">
+                            <!--       배송중, 배송완료 경우 명세서 디폴트 체크되어 팝업 (견전서도 체크 가능하도록 활성화)            -->
+                            <!-- <aura:if isTrue="{!(v.orderStatus=='배송중'||v.orderStatus=='배송완료')}"> -->
+                            <!-- 23.07.10 DKBMC 전형호 (명세서 체크박스 결함건) -->
+                            <aura:if isTrue="{!v.isSpecificationValid}">
+                                <lightning:checkboxGroup name="Checkbox Group"
+                                                         label="Checkbox Group"
+                                                         options="{! v.options }"
+                                                         value="{! v.value }"
+
+
+                                                         variant="label-hidden"
+                                                         onchange="{!c.isSpecificationCheckedChange}"/>
+                                <aura:set attribute="else">
+                                    <!--       결제요청,결제완료,상품준비중,배송준비중일 경우 견적서 디폴트 체크되어 팝업 (명세서는 체크 불가)              -->
+                                    <!--           현재는 배송중과 배송완료가 아니면 견적서, 사업자등록증, 통장사본만 가능                      -->
+                                    <lightning:checkboxGroup name="Checkbox Group"
+                                                             label="Checkbox Group"
+                                                             options="{! v.options }"
+                                                             value="{! v.value}"
+
+                                                             variant="label-hidden"
+                                                             onchange=""/>
+                                </aura:set>
+                            </aura:if>
+
+                        </div>
+                        <ul class="tabInner1 wrapFlex mt_12">
+                            <li>
+                                <lightning:input name="custNm"  label="수신자명" class="" value="{!v.RCVRName}"/>
+                            </li>
+                            <li>
+                                <lightning:input name="custNm"  label="수신자 email" required="{!v.emailChk}" class="" value="{!v.RCVREmail}" type="email"/>
+                            </li>
+                        </ul>
+                        <div class="textField" style="height:40px; display: inline-block; width: -webkit-fill-available;"> <!-- 2023.08.15 PHJ -->
+                            <lightning:textarea name="custNm" class="textAreaBody" label="견적메모"  value="{!v.Note}" placeholder="견적메모를 입력하세요."  disabled="{!v.disabledNote}" style="background-color: #fff;"/>
+                        </div>
+                        <!--23 09 04 hyungho.chun-->
+                        <aura:if isTrue="{!and(v.isSpecificationValid ,v.isSpecificationChecked)}">
+                            <div class="textField" style="height:40px; display: inline-block; width: -webkit-fill-available;"> 
+                                <lightning:textarea name="custNm" class="textAreaBody" label="주소"  value="{!v.contactAddress}" placeholder="" />
+                            </div>                            
+                        </aura:if>
+
+
+
+                        <div class="datatableWrap">
+                    <p class="detailBoxTtl">생성이력</p>
+                    <div style="height:350px">
+<!--                                               <lightning:datatable-->
+<!--                                                       aura:id="orderListDt"-->
+<!--                                                       columns="{!v.columns}"-->
+<!--                                                       data="{!v.data}"-->
+<!--                                                       keyField="sProductItemId"-->
+<!--                                                       maxRowSelection="1"-->
+<!--                                                       suppressBottomBar="true"-->
+<!--                                                       onrowaction="{!c.fnHandleRowAction}"-->
+<!--                                                       selectedRows="{! v.listSelectRows}"-->
+<!--                                                       onrowselection="{!c.fnSelected}"-->
+<!--                                                       sortedBy="Seq"-->
+<!--                                                       defaultSortDirection="desc"-->
+<!--                                               />-->
+                        <c:EXWijmo aura:id="wijmo_EXSuppliesQuoteList"  onmessage="{!c.onWijmoMessage}"
+                                   stub="{! 'EXSuppliesQuoteList'}" css="{! 'EXWijmoReconciled'}"/>
+                    </div>
+                </div>
+                    </aura:set>
+                    <aura:set attribute="footer">
+                        <div class="gridMasterBtnWrap" style="display:block">
+                            <lightning:button variant="neutral" label="PDF생성"
+                                              onclick="{!c.suppliesDocPreview}" />
+<!--                            disabled="{!(v.orderStatus!='결제요청'||v.orderStatus!='품절예약완료')}"-->
+                            <lightning:button variant="neutral" label="PDF보기"
+                                              onclick="{!c.suppliesPDFview}"
+                                              disabled="{!v.emptyData}"/>
+
+                            <lightning:button variant="neutral" label="email발송"
+                                              onclick="{!c.sendPDF}"/>
+                            <lightning:button variant="neutral" label="닫기"
+                                              onclick="{!c.fnCancel}"/>
+
+                        </div>
+                    </aura:set>
+                </c:EX_ComponentTemplate>
+        </div>
+    </section>
+    <!--    <lightning:layout multipleRows="true"  horizontalAlign="center" verticalAlign="center">-->
+
+<!--        <lightning:layoutItem size="8" class="slds-col"  padding="around-small">-->
+<!--            <lightning:checkboxGroup name="Checkbox Group"-->
+<!--                                     options="{! v.options }"-->
+<!--                                     value="{! v.value }"-->
+<!--            />-->
+<!--        </lightning:layoutItem>-->
+<!--        <lightning:layoutItem size="4"  padding="around-small">-->
+<!--            <lightning:buttonGroup>-->
+
+<!--            </lightning:buttonGroup>-->
+<!--        </lightning:layoutItem>-->
+
+<!--        <lightning:layoutItem size="6" padding="left-small">-->
+<!--            <lightning:input name="custNm"  label="수신자명"-->
+<!--                             class="" value="{!v.RCVRName}"/>-->
+<!--        </lightning:layoutItem>-->
+<!--        <lightning:layoutItem size="6" padding="left-small">-->
+<!--            <lightning:input name="custNm"  label="수신자 email" required="true"-->
+<!--                             class="" value="{!v.RCVREmail}"/>-->
+<!--        </lightning:layoutItem>-->
+<!--        <lightning:layoutItem size="12" padding="left-small">-->
+<!--            <lightning:input name="custNm"  label="견적메모"-->
+<!--                             class="" value="{!v.Note}" />-->
+<!--        </lightning:layoutItem>-->
+<!--               <lightning:layoutItem size="12" class="slds-p-around_medium">-->
+<!--                   <lightning:card class="slds-card_boundary " title='생성이력'>-->
+<!--                       <lightning:datatable-->
+<!--                               aura:id="orderListDt"-->
+<!--                               columns="{!v.columns}"-->
+<!--                               data="{!v.data}"-->
+<!--                               keyField="sProductItemId"-->
+<!--                               maxRowSelection="1"-->
+<!--                               suppressBottomBar="true"-->
+<!--                               onrowaction="{!c.fnHandleRowAction}"-->
+<!--                               selectedRows="{! v.listSelectRows}"-->
+<!--                               onrowselection="{!c.fnSelected}"-->
+
+<!--                       />-->
+<!--                   </lightning:card>-->
+<!--               </lightning:layoutItem>-->
+<!--    </lightning:layout>-->
+
+<!--    <lightning:layoutItem size="12"  class="slds-text-align_right" padding="around-small">-->
+<!--        <lightning:buttonGroup>-->
+<!--            <lightning:button variant="neutral" label="PDF생성"-->
+<!--                              onclick="{!c.suppliesDocPreview}"/>-->
+<!--            <lightning:button variant="neutral" label="PDF보기"-->
+<!--                              onclick="{!c.suppliesPDFview}"/>-->
+
+<!--            <lightning:button variant="neutral" label="email발송"-->
+<!--                              onclick="{!c.sendPDF}"/>-->
+<!--        </lightning:buttonGroup>-->
+<!--    </lightning:layoutItem>-->
+    {!v.modalContent}
+    <div class="slds-backdrop slds-backdrop_open custom_backdrop" style="z-index:102"></div>
+
+</aura:component>

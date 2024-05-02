@@ -1,0 +1,92 @@
+<!--
+ - Created by pttc on 12/15/22.
+ -->
+
+
+<aura:component description="EX_PaymentHeader"
+                extends="c:FN_PaymentHeaderParent">
+
+    <aura:attribute name="paymentSlot" type="String" />
+    <aura:attribute name="serviceResource" type="String"/>
+    <aura:attribute name="isCancelPayment" type="boolean"/>
+    <aura:handler event="c:EX_PaymentCancelEvent_evt" action="{!c.fnCancel}" />
+    <!--23 08 22 hyungho.chun serviceResource 정보 받음-->
+    <aura:handler  event="c:EX_ContEmp_evt" action="{!c.getContactInfo}"/>
+    <!--24 01 08 hyungho.chun 포인트승인 실패시 결제 금액 리셋용 이벤트 핸들러-->
+    <aura:handler  event="c:EX_PaymentAmountReset_evt" action="{!c.totalPaymentReset}"/>
+
+    <!-- 23.12.26 gw.lee 결제금액 잠금 조치-->
+    <aura:handler  event="c:EX_PointDisabledEvent_evt" action="{!c.handleLocked}"/>
+    <aura:attribute name="isLocked" default="false" type="boolean"/>
+
+    <div class="slds-m-bottom_xx-small">
+        <lightning:layout>
+            <aura:if isTrue="{!v.paymentMethod == 'Point'}">
+                <lightning:layoutItem size="2" class="slds-grid slds-grid_vertical-align-center">
+                    <div class="slds-form-element_horizontal padding-left-unset hide-label small-margin">
+                        <lightning:input aura:id="point" type="text" variant="label-hidden" value="포인트" style="text-align: center; max-width: 70px;"
+                                 class="beside small-margin"
+                                 readonly="true"/>
+                        <!-- <lightning:select label="Type" variant="label-hidden" class="slds-form_inline" value="{!v.paymentMethod}"
+                                          onchange="{!c.handleChange}" onfocus="{! c.onFocus}"
+                                          disabled="{! or(equals('progressing', v.status) || equals('locked', v.status), equals('completed', v.status) || equals('holding', v.status) || equals('Point', v.paymentMethod))}">
+                            <option value="Point">포인트</option>
+                        </lightning:select> -->
+                    </div>
+                </lightning:layoutItem>
+                <aura:set attribute="else">
+                    <lightning:layoutItem size="2" class="slds-grid slds-grid_vertical-align-center">
+                        <div class="slds-form-element_horizontal padding-left-unset hide-label small-margin">
+                            <lightning:select label="Type" variant="label-hidden" class="slds-form_inline" value="{!v.paymentMethod}"
+                                              onchange="{!c.handleChange}" onfocus="{! c.onFocus}"
+                                              disabled="{! or(equals('progressing', v.status) || equals('locked', v.status), equals('completed', v.status) || equals('holding', v.status) || equals('Point', v.paymentMethod))}">
+                                <option value="Credit">결제</option>
+                                <!--                            <option value="Point">포인트</option>-->
+                                <aura:if isTrue="{!v.serviceResource != 'CNSL'}">
+                                    <option value="Card">카드</option>
+                                </aura:if>
+                            </lightning:select>
+                        </div>
+                    </lightning:layoutItem>
+                </aura:set>
+
+            </aura:if>
+
+            <!-- 23 08 23 hyungho.chun onblur="{! c.handleBlurAmount}" 제거  -->
+            <lightning:layoutItem size="4" class="slds-grid slds-grid_vertical-align-center">
+                <!-- <lightning:input aura:id="amount" type="number" label="결제금액" variant="label-inline" value="{! v.amount}"
+                                 class="beside small-margin"
+                                 
+                                 onclick="{! c.handleClickInput}"
+                                 disabled="true"/> -->
+                <lightning:input aura:id="amount" type="number" label="결제금액" variant="label-inline" value="{! v.amount}"
+                                 class="beside small-margin"
+                                 
+                                 onclick="{! c.handleClickInput}"
+                                 readonly="true"/>                                 
+                <!-- <div style="display : inline-block">
+                    <label style="margin-left : 10px" for="amount">결제금액</label>
+                    <input style="margin-left : 10px; height : 100%; width : 100px" type="text" id="amount" name="amount" value="{! v.amount}" readonly="true" onclick="{! c.handleClickInput}"></input>                            
+                </div>                                  -->
+            </lightning:layoutItem>
+                        <lightning:layoutItem size="6" class="slds-grid slds-grid_vertical-align-center slds-grid_align-end">
+                            <lightning:layout>
+
+                                <lightning:layoutItem class="slds-grid slds-grid_vertical-align-center slds-grid_align-end slds-hide">
+                                    <lightning:button label="초기화" variant="neutral" onclick="{! c.handleReset}"
+                                                      disabled="{! or(equals('progressing', v.status), equals('locked', v.status))}"/>
+
+                                    <aura:if isTrue="{!equals('completed', v.status)}">
+                                        <div class="slds-m-left_small slds-box_border payment-completed">
+                                            <div class="slds-p-around_xx-small">완료</div>
+                                        </div>
+                                    </aura:if>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+    <p>{! v.slot }</p>
+
+
+</aura:component>

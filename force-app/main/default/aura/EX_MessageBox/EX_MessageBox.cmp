@@ -1,0 +1,53 @@
+<!--
+ - Created by I2MAX.SEUNGHUNAN on 2023-02-04.
+ -->
+<aura:component description="EX_MessageBox" implements="flexipage:availableForAllPageTypes">
+    <aura:html tag="style">
+        .cEX_MessageBox .dialog{
+        z-index:107;
+        top:35%;
+        }
+    </aura:html>
+
+    <!-- Dialog Attribute -->
+    <aura:attribute name="message"          type="String"                           description="Dialog 메세지"    />
+    <aura:attribute name='callback'         type='Object'                           description="Dialog 호출시 전달된 Callback 함수"/>
+    <aura:attribute name="isOpen"           type="Boolean"      default="false"     description="Dialog 상태"      />
+    <aura:attribute name="showSpinner"      type="Boolean"      default="false"     description="사용자 입력 Prevention" />
+    <aura:attribute name="isExOrderCreate"      type="Boolean"      default="false"     description="OrderCreate에서 넘어온값" />
+    <aura:attribute name="resendType"       type="String"                           description="재전송 타입" />
+
+    <!-- External Method -->
+    <aura:method    name="confirm"          action="{!c.confirm}"       access="public"     description="confirm 메세지 호출">
+        <aura:attribute name="param"        type="Object"/>
+        <aura:attribute name="callback"     type="Function"/>
+        <aura:attribute name="resendType"   type="String" />
+    </aura:method>
+
+    <aura:if isTrue="{!equals(v.isOpen,true)}">
+        <div class="background" onclick="{!c.doCancel}" >
+            <div class="dialog" onclick="{!c.preventCloseEvent}">
+                <aura:if isTrue="{!v.showSpinner}">
+                    <lightning:spinner  variant="brand" alternativeText="Waiting" size="large" />
+                </aura:if>
+                <div class="message">
+                    <!-- 2023.09.26 seung yoon heo CreateOder에 font size증가 -->
+                    <aura:if isTrue="{!v.isExOrderCreate}">
+                        <p style="white-space: pre-wrap;font-size: 15px; padding-top: 18px;">{!v.message}</p>
+                        <aura:set attribute="else">
+                            <p style="white-space: pre-wrap;">{!v.message}</p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+                <div class="button slds-grid slds-grid_align-end">
+                    <div class="slds-col">
+                        <lightning:button type="button" label="취소" onclick="{!c.doCancel}"/>
+                    </div>
+                    <div class="slds-col">
+                        <lightning:button type="button" label="확인" onclick="{!c.doConfirm}" variant="brand"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aura:if>
+</aura:component>

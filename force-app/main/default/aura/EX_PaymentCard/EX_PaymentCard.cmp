@@ -1,0 +1,214 @@
+<!--
+ - Created by pttc on 12/15/22.
+ -->
+
+
+<aura:component description="EX_PaymentCard"
+                extends="c:FN_PaymentBase">
+
+  <aura:attribute name="cardType" type="String" default=""/>
+  <aura:attribute name="authNum" type="String" default=""/>
+  <aura:attribute name="authDate" type="Datetime" default=""/>
+  <aura:attribute name="TIDNum" type="String" default=""/>
+  <aura:attribute name="cardNum" type="String" default=""/>
+  <aura:attribute name="MID" type="String" default=""/>
+  <aura:attribute name="isApproved" type="Boolean" default="false"/>
+  <aura:attribute name="isCardManual" type="Boolean" default="true" description="수기결제 여부"/>
+  <aura:attribute name="isOpenInstallment" type="Boolean" default="false"/>
+  <aura:attribute name="isOpenNfc" type="Boolean" default="false"/>
+  <aura:attribute name="isNfcClicked" type="Boolean" default="false" description="NFC 결제를 시작하면 true"/>
+  <aura:attribute name="installment" type="String" default="00"/>
+  <aura:attribute name="nfcAttr" type="Map" default="" description="NFC 생성을 위한 Object"/>
+  <aura:attribute name="isCleared" type="Boolean" default="true"
+                  description="필수 필드를 초기화 하기 위한 변수, false->true 로 처리하여 초기화한다. "/>                
+
+  <!--  카드리더 중앙에 표시되게 하기 위해 따로 스피너 만듬-->
+  <aura:attribute name="showCardReaderSpinner" type="Boolean" default="false"/>
+
+
+  <div class="slds-box_border slds-color__border_gray-9 fn-desktop">
+    <lightning:card>
+      <div class="slds-p-around_small">
+        <lightning:layout>
+          <lightning:layoutItem size="11">
+            <aura:if isTrue="{! v.isCleared}">
+              <lightning:input aura:id="card-type" type="text" value="{!v.cardType}" label="카드종류" variant="label-inline"
+                               required="true"
+                               disabled="{!or(v.isCompleted, v.isDisabled || v.isBundleLock || v.isLocked || v.isBundled || not(v.isCardManual))}"/>
+            </aura:if>
+          </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:layout>
+          <lightning:layoutItem size="11">
+            <lightning:layout>
+              <lightning:layoutItem flexibility="auto">
+                <aura:if isTrue="{! v.isCleared}">
+                  <lightning:input aura:id="approval-no" type="text" value="{!v.authNum}" label="승인번호"
+                                   variant="label-inline" required="true"
+                                   disabled="{!or(v.isCompleted, v.isDisabled || v.isBundleLock || v.isLocked || v.isBundled || not(v.isCardManual))}"/>
+                </aura:if>
+              </lightning:layoutItem>
+
+              <lightning:layoutItem class="slds-p-right_xx-small">
+                <lightning:button label="카드취소" disabled="{! v.isDisabled || not(v.isApproved) || v.isBundleLock || v.isLocked}"
+                                  onclick="{!c.handleCancel}"/>
+                <lightning:button label="카드승인" variant="brand"
+                                  disabled="{!or(v.isHolding, v.isDisabled || v.isBundleLock || v.isLocked || v.isCompleted) }"
+                                  onclick="{!c.handleCardPay}"/>
+              </lightning:layoutItem>
+            </lightning:layout>
+          </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:layout>
+          <lightning:layoutItem size="11">
+            <aura:if isTrue="{! v.isCleared}">
+              <lightning:input aura:id="approval-date" type="datetime" value="{!v.authDate}" label="승인일시"
+                               variant="label-inline" required="true"
+                               disabled="{!or(v.isCompleted, v.isDisabled || v.isBundleLock || v.isLocked || v.isBundled || not(v.isCardManual))}"/>
+            </aura:if>
+          </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:layout>
+          <lightning:layoutItem size="11">
+            <lightning:input type="text" value="{!v.TIDNum}" label="TID번호" variant="label-inline"
+                             disabled="{# true}"/>
+          </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:layout>
+          <!--24 01 15 hyungho.chun 모바일 NFC 결제 hide풀땐 수기결제저장 size-> 6으로 조정 필요 -->
+          
+         <lightning:layoutItem size="5" class="slds-hide">
+           <lightning:button label="모바일 NFC 결제" variant="brand-outline" onclick="{! c.handleNfc}"
+                             disabled="{! or(v.isCompleted || v.isProgressing, v.isHolding || v.isDisabled || v.isBundleLock || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+         </lightning:layoutItem>
+        
+         <!--24 01 15 hyungho.chun 모바일 NFC 결제-->
+          <lightning:layoutItem size="11" class="slds-grid slds-grid_align-end slds-p-right_xx-small">
+            <lightning:button label="수기결제저장" variant="brand" onclick="{! c.handleManualPay}"
+                              disabled="{! or(v.isCompleted || v.isProgressing, v.isBundled || not(v.isCardManual) || v.isHolding || v.isDisabled || v.isBundleLock || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+          </lightning:layoutItem>
+        </lightning:layout>
+
+        <aura:if isTrue="{! v.isBundled}">
+          <lightning:layout>
+            <lightning:layoutItem size="11" class="slds-grid slds-grid_align-end slds-p-right_xx-small slds-m-top_small">
+              <lightning:badge label="묶음 결제에서는 '수기결제저장'을 할 수 없습니다." class="slds-theme_alert-texture"></lightning:badge>
+            </lightning:layoutItem>
+          </lightning:layout>
+        </aura:if>
+      </div>
+
+    </lightning:card>
+
+    <aura:if isTrue="{!v.isOpenInstallment}">
+      <section role="dialog" aura:id="modal_type" class="slds-modal slds-fade-in-open fn-modal slds-modal_small">
+        <div class="fn-modal-backdrop">
+          <div class="slds-modal__container slds-align_absolute-center">
+            <aura:if isTrue="{!v.showCardReaderSpinner}">
+              <lightning:spinner variant="brand" alternativeText="Loading"/>
+            </aura:if>
+            <div class="container slds-color__background_gray-1">
+              <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_3-of-3">
+                  <div class="slds-grid slds-grid_vertical">
+                    <div class="slds-m-around_medium slds-text-align_center">
+                      <p style="font-size:22px;">카드결제</p>
+                      <hr style="margin-top:0px;margin-bottom:0px;"/>
+                    </div>
+                    <div class="slds-grid slds-gutters">
+                      <div class="slds-col slds-size_1-of-2 ">
+                        <div class="slds-grid slds-grid_vertical">
+                          <div class="slds-col slds-text-align_center">
+                            <p style="font-size:14px;">결제금액</p>
+                          </div>
+                          <br/>
+                          <div class="slds-col slds-text-align_center">
+                            <lightning:formattedNumber value="{!v.amount}" maximumFractionDigits="0"/>
+                            원
+                          </div>  
+                        </div>
+                        
+                      </div>
+
+                      <div class="slds-col slds-size_1-of-2 ">
+                        <div class="slds-grid slds-grid_vertical">
+                          <div class="slds-col slds-text-align_center">
+                            <p style="font-size:14px;">할부개월</p>
+                          </div>
+                          <div class="slds-col">
+                            <lightning:select variant="label-hidden" class="combo_DSC label_none card_select"
+                                              value="{!v.installment}">
+                              <option value="00" selected="selected">일시불</option>
+                              <option value="02">2개월</option>
+                              <option value="03">3개월</option>
+                              <option value="04">4개월</option>
+                              <option value="05">5개월</option>
+                              <option value="06">6개월</option>
+                              <option value="07">7개월</option>
+                              <option value="08">8개월</option>
+                              <option value="09">9개월</option>
+                              <option value="10">10개월</option>
+                              <option value="11">11개월</option>
+                              <option value="12">12개월</option>
+                            </lightning:select>
+                          </div>
+                          
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                  <br/><br/><br/><br/>
+                <!-- <footer class="slds-modal__footer"> -->
+                </div>
+                <!-- <div class="slds-col slds-size_1-of-3">
+                  <div class="slds-grid_vertical">
+                    <div class="slds-col">
+                      <lightning:button label="{! v.isNfcClicked ? '모바일 NFC 결제' : '승인'}" onclick="{!c.handleStartTrade}" variant="brand" class="bottomBtn"/>
+                    </div>
+                    
+                    <div class="slds-col">
+                      <lightning:button label="취소" onclick="{!c.handleCloseCardReader}" class="bottomBtn"/>
+                    </div>
+                    
+                    
+                  </div>
+                </div> -->
+                <!-- </footer> -->
+                <footer class="slds-modal__footer">
+                  <div class="slds-grid_vertical">
+                    <br/>
+                    <div class="slds-col">
+                      <lightning:button label="{! v.isNfcClicked ? '모바일 NFC 결제' : '승인'}" onclick="{!c.handleStartTrade}" variant="brand" class="bottomBtn"/>
+                    </div>
+                    <br/><br/><br/>
+                    <div class="slds-col">
+                      <lightning:button label="취소" onclick="{!c.handleCloseCardReader}" class="bottomBtn"/>
+                    </div>
+                    
+                    
+                  </div>                  
+                </footer>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aura:if>
+
+<!--24 01 15 hyungho.chun 모바일 NFC 결제-->
+   <aura:if isTrue="{!v.isOpenNfc}">
+     <section role="dialog" aura:id="modal_nfc" class="slds-modal slds-fade-in-open fn-modal">
+       <div class="fn-modal-backdrop">
+         <c:EX_PaymentCardNFC attr="{! v.nfcAttr}" area="{! v.slotNo}" onClose="{! c.onCloseNfc}"/>
+       </div>
+     </section>
+   </aura:if>
+<!--24 01 15 hyungho.chun 모바일 NFC 결제-->
+
+  </div>
+</aura:component>

@@ -1,0 +1,337 @@
+<!--
+ - Created by pttc on 12/15/22.
+ -->
+
+
+<aura:component description="EX_PaymentURL"
+                extends="c:FN_PaymentBase" controller="EX_PaymentUtil">
+    <aura:handler name="init" value="{! this }" action="{! c.onInit }"/>
+    <aura:handler  event="c:EX_ContEmp_evt" action="{!c.getContactInfo}"/>
+    <aura:handler  event="c:EX_PaymentBalance_evt" action="{!c.getBalance}"/>
+
+    <!--23 10 19 hyungho.chun cashInner에서 받은 현금영수증용 이벤트 핸들러-->
+    <aura:handler event="c:EX_ReceiptInfoEvent_evt" action="{!c.getReceiptInfo}"/>
+    <!--23 10 20 hyungho.chun 포인트 mbs cust id 받기-->
+    <aura:handler  event="c:EX_PaymentPointMBSidSend_evt" action="{!c.getMbsCustId}"/>
+    <aura:attribute name="mbsCustId" type="String" default=""/>
+    
+    <aura:registerEvent name="EX_PaymentCompleteEvent_evt" type="c:EX_PaymentCompleteEvent_evt"/>
+    <aura:registerEvent name="EX_PointDisabledEvent_evt" type="c:EX_PointDisabledEvent_evt"/>
+    <!--23 10 22 gw.lee 알림톡 메세지 전송-->
+    <aura:registerEvent name="EX_ExMessageSend_evt" type="c:EX_ExMessageSend_evt"/>
+
+    <aura:handler event="c:EX_PaymentExMessage_evt" action="{!c.createExMessageObj}"/>    
+
+    <aura:attribute name="paymentOptionsForCNSL" type="List" default="[
+        {'label': '결제URL', 'value': 'PG_URL'},
+        {'label': '가상계좌', 'value': 'PG_VBANK'},
+
+        ]"/>
+    <aura:attribute name="paymentOptions" type="List" default="[
+        {'label': '결제URL', 'value': 'PG_URL'},
+        {'label': '가상계좌', 'value': 'PG_VBANK'},
+        {'label': '현금', 'value': 'PG_VBANK1'},
+
+        ]"/>
+
+    <aura:attribute name="balanceAmount" type="Decimal" default="0"/>
+
+    <aura:attribute name="serviceResource" type="String"/>
+    <aura:attribute name="virtualBankOptions" type="List" default="[]" description="가상계좌 발급 은행"/>
+    <aura:attribute name="cmBank" type="Map" default="{}" description="센터 수금 계좌 은행"/>
+    <aura:attribute name="refundBankOptions" type="List" default="[]" description="환불 계좌 은행"/>
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="objEmp" type="User"/>
+    <aura:attribute name="prId" type="String"/>
+
+    <aura:attribute name="param" type="Map" description="선택 값들 저장" default="{}"/>
+    <aura:attribute name="kakao" type="Map" description="카카오 메시지, 유형별 저장" default="{
+        pgUrl:'', pgVBank:'', cmVBank:'',
+    }"/>
+
+    <aura:attribute name="cashParam" type="Map" description="지출 증빙 선택 값들 저장" default="{
+        id:'',
+        proofType:'B',
+        proofCashType:'CA',
+        proofCashNoType:'B',
+        proofNo:'',
+        contact:null,
+        bizDoc:'',
+    }"/>
+    <aura:attribute name="containerId" type="String" default="" description="첨부파일 첨부를 위한 recordId, card url 선택 시 cashInner 콤포넌트의 값이 지워지므로 값 유지용"/>
+    <aura:attribute name="fileId" type="String" default="" description="첨부파일 Id, card url 선택 시 cashInner 콤포넌트의 값이 지워지므로 값 유지용"/>
+
+    <aura:attribute name="isIssuedCardUrl" type="Boolean" default="false" description="카드 URL 생성 유무"/>
+    <aura:attribute name="isIssuedBankAccountNo" type="Boolean" default="false" description="가상 계좌 생성 유무"/>
+    <aura:attribute name="isProofCompleted" type="Boolean" default="false" description="현금 증빙 여부"/>
+    <aura:attribute name="isKakaoSent" type="Boolean" default="false" description="알림톡 재발송 가능"/>
+    <aura:attribute name="isApproved" type="Boolean" default="false" description="승인완료, 재진입 시 항상 false"/>
+    <aura:attribute name="authDate" type="String" description="영수증 출력용"/>
+    <aura:attribute name="authNum" type="String" description="영수증 출력용"/>
+    <aura:attribute name="certifyKey" type="String" description="영수증 출력용"/>
+    <aura:attribute name="isManagement" type="boolean" default="false"/>
+
+    <aura:attribute name="PhoneNumber" type="String" />
+
+
+    <aura:attribute name="isCashEmp" type="Boolean"  description="현금 대리 입금 여부"/>
+    <div class="slds-box_border slds-color__border_gray-9 fn-desktop" style="width:100%;min-height: 200px;">
+        <lightning:card>
+            <div
+                    class="{! 'slds-p-horizontal_small ' + (v.param.payment == 'PG_VBANK' ? ' pg-bank ' : '') + (v.param.payment == 'PG_VBANK1' ? ' pg-vbank' : '') }">
+                <lightning:layout verticalAlign="center">
+                    <lightning:layoutItem size="12">
+
+                        <lightning:radioGroup label="결제방법"
+                                              options="{!v.serviceResource == 'CNSL' ? v.paymentOptionsForCNSL : v.paymentOptions }"
+                                              value="{! v.param.payment }"
+                                              onchange="{! c.handleChangePayment}"
+                                              variant="label-inline"
+                                              disabled="{! or(v.isIssuedCardUrl|| v.isIssuedBankAccountNo, v.isCompleted || v.isDisabled || v.isLocked || v.isProofCompleted || v.isProgressing)}"/> <!--23 12 27 hyungho.chun isProgressing 추가 -->
+                    </lightning:layoutItem>
+                    <!--                    <lightning:layoutItem size="2">-->
+                    <!--                        <lightning:input aura:id="name" value="{!v.param.receiverName }"-->
+                    <!--                                         readonly="true"/>-->
+                    <!--                    </lightning:layoutItem>-->
+                    <!--                    <lightning:layoutItem size="2">-->
+
+                    <!--                        <lightning:input value="{!v.param.receiverMobile}" readonly="true"/>-->
+                    <!--                    </lightning:layoutItem>-->
+                </lightning:layout>
+
+                <aura:if isTrue="{!v.param.payment == 'PG_VBANK' || v.param.payment == 'PG_VBANK1' }">
+                    <lightning:layout>
+                        <lightning:layoutItem size="12">
+                            <!--suppress HtmlUnknownAttribute -->
+                            <c:EX_PaymentCashInner aura:id="inner" param="{! v.cashParam}" phone="{!if(v.isCashEmp) ? v.objEmp.Phone : v.objCont.MobilePhone  }"
+                                                   fileId="{! v.fileId}" containerId="{! v.containerId}"
+                                                   onRequest="{! c.onRequestInner}"
+                                                   disabled="{!v.isProofCompleted || v.isCompleted || v.isDisabled || v.isLocked || v.isProgressing }">
+                                <!--23 10 19 hyungho.chun 현금영수증 이중발급으로 버튼숨김(데이터만 쏴줌)-->
+                                <!-- <aura:set attribute="buttons">
+                                    <aura:if isTrue="{! v.cashParam.proofType == 'B'}">
+                                        <lightning:button label="승인" variant="brand"
+                                                          disabled="{! or(v.isProofCompleted || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"
+                                                          onclick="{! c.handleProofOk}"/>
+                                        <lightning:button label="승인취소" variant="neutral"
+                                                          disabled="{! or(not(v.isProofCompleted) || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"
+                                                          onclick="{! c.handleProofCancel}"/>
+
+                                    </aura:if>
+                                </aura:set> -->
+                            </c:EX_PaymentCashInner>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>                
+
+                <aura:if isTrue="{!v.param.payment == 'PG_URL' }">
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="name" label="주문자정보" variant="label-inline" placeholder="성명" value="{! v.param.receiverName }"
+                                             disabled="{! or(v.isIssuedCardUrl || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}" readonly="true"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="phone" label="주문자Mobile" placeholder="폰번호" variant="label-hidden" class="beside"
+                                             value="{! v.param.receiverMobile }" onblur="{! c.handleBlurPhone}"
+                                             disabled="{! or(v.isIssuedCardUrl || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input label="" placeholder="상태값" variant="label-inline" value="{! v.param.cardRequestStatus }"
+                                             disabled="true"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6">
+                            <!--                            <lightning:button label="결제URL취소" variant="neutral" onclick="{! c.handleCancelCard}"-->
+                            <!--                                              disabled="{! or(not(v.isIssuedCardUrl) || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>-->
+                            <lightning:button label="결제URL발급" variant="brand" onclick="{! c.handleCreateCard}"
+                                              disabled="{! or(v.isIssuedCardUrl || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="dueDate" class="slds-hidden" label="결제예정일" type="date" variant="label-inline" value="{! v.param.depositDueDate }" min="{! v.today}" required="true"
+                                             disabled="{! or(v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="12">
+                            <lightning:textarea label="알림톡내용" class="textarea1" variant="label-inline" value="{! v.kakao.pgUrl }"
+                                                disabled="{# true}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+
+                <aura:if isTrue="{! v.isCashEmp == true || v.param.payment == 'PG_VBANK1'}">
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:combobox aura:id="bank" label="은행선택" variant="label-inline" value="{! v.param.bank }"
+                                                dropdownAlignment="auto" placeholder="선택" required="true"
+                                                options="{! v.virtualBankOptions}"
+                                                disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6" class="slds-p-left_medium">
+                            <lightning:input aura:id="dueDate"  label="입금예정일" type="date" variant="label-inline" value="{! v.param.depositDueDate }" min="{! v.today}" required="true"
+                                             class="beside slds-hidden"
+                                             disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="name" label="주문자정보" variant="label-inline" value="{! v.param.receiverName }" placeholder="성명"
+                                             readonly="true"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="phone" label="전화번호" variant="label-hidden" value="{! v.param.receiverMobile2 }" class="beside"
+                                             placeholder="전화번호" onblur="{! c.handleBlurPhone}" readonly="true"
+                            />
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="name" label="수신자정보" variant="label-inline" value="{!v.objEmp.Name }" placeholder="성명"
+                                             disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="phone" label="전화번호" variant="label-hidden" value="{!v.objEmp.Phone }" class="beside"
+                                             placeholder="전화번호" onblur="{! c.handleBlurPhone}"
+                                             disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input label="계좌번호" variant="label-inline" value="{! v.param.virtualBankAccountNo }"
+                                             disabled="true"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6">
+                            <lightning:button label="가상계좌발행" variant="brand" onclick="{! c.handleCreateBank}"
+                                              disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                            <!--                            <lightning:button label="가상계좌취소" variant="neutral" onclick="{! c.handleCancelBank}"-->
+                            <!--                                              disabled="{! or(not(v.isIssuedBankAccountNo) || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>-->
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="12">
+                            <lightning:textarea label="알림톡내용" variant="label-inline" value="{! v.kakao.pgVBank }"
+                                                disabled="{# true}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+
+                <aura:if isTrue="{! v.isCashEmp == false || v.param.payment == 'PG_VBANK'}">
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:combobox aura:id="bank" label="은행선택" variant="label-inline" value="{! v.param.bank }"
+                                                dropdownAlignment="auto" placeholder="선택" required="true"
+                                                options="{! v.virtualBankOptions}"
+                                                disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6" class="slds-p-left_medium">
+                            <lightning:input aura:id="dueDate"  label="입금예정일" type="date" variant="label-inline" value="{! v.param.depositDueDate }" min="{! v.today}" required="true"
+                                             class="beside slds-hidden"
+                                             disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="name" label="주문자정보" variant="label-inline" value="{! v.objCont.Name }" placeholder="성명"
+                                             readonly="true"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6">
+                            <lightning:input aura:id="phone" label="전화번호" variant="label-hidden" value="{! v.objCont.MobilePhone }" class="beside"
+                                             placeholder="전화번호" onblur="{! c.handleBlurPhone}"
+                            />
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="6">
+                            <lightning:input label="계좌번호" variant="label-inline" value="{! v.param.virtualBankAccountNo }"
+                                             disabled="true"/>
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="6">
+                            <lightning:button label="가상계좌발행" variant="brand" onclick="{! c.handleCreateBank}"
+                                              disabled="{! or(v.isIssuedBankAccountNo || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                            <!--                            <lightning:button label="가상계좌취소" variant="neutral" onclick="{! c.handleCancelBank}"-->
+                            <!--                                              disabled="{! or(not(v.isIssuedBankAccountNo) || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>-->
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                    <lightning:layout>
+                        <lightning:layoutItem size="12">
+                            <lightning:textarea label="알림톡내용" variant="label-inline" value="{! v.kakao.pgVBank }"
+                                                disabled="{# true}"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+
+                <aura:if isTrue="{!v.param.payment == 'PG_VBANK' || v.param.payment == 'PG_VBANK1' }">
+                    <!-- <lightning:layout>
+                        <lightning:layoutItem size="12">
+                            
+                            <c:EX_PaymentCashInner aura:id="inner" param="{! v.cashParam}" phone="{!if(v.isCashEmp) ? v.objEmp.Phone : v.objCont.MobilePhone  }"
+                                                   fileId="{! v.fileId}" containerId="{! v.containerId}"
+                                                   onRequest="{! c.onRequestInner}"
+                                                   disabled="{!v.isProofCompleted || v.isCompleted || v.isDisabled || v.isLocked || v.isProgressing }">
+                                
+                                <aura:set attribute="buttons">
+                                    <aura:if isTrue="{! v.cashParam.proofType == 'B'}">
+                                        <lightning:button label="승인" variant="brand"
+                                                          disabled="{! or(v.isProofCompleted || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"
+                                                          onclick="{! c.handleProofOk}"/>
+                                        <lightning:button label="승인취소" variant="neutral"
+                                                          disabled="{! or(not(v.isProofCompleted) || v.isCompleted || v.isProgressing, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"
+                                                          onclick="{! c.handleProofCancel}"/>
+
+                                    </aura:if>
+                                </aura:set>
+                            </c:EX_PaymentCashInner>
+                        </lightning:layoutItem>
+                    </lightning:layout> -->
+                </aura:if>
+            </div>
+
+        </lightning:card>
+    </div>
+
+    <aura:attribute name="refundParam" type="Map" description="환불 정보 저장" default="{
+            bank: '',
+            receiverName: '',
+            bankAccountNo: '',
+  }"/>
+    <aura:attribute name="isShowRefund" type="Boolean" default="false" description="환불계좌입력 모달 표시유무"/>
+    <aura:if isTrue="{! v.isShowRefund}">
+        <!--suppress CssUnresolvedCustomProperty -->
+        <div class="slds-box_border slds-backdrop_open backdrop-refund"></div>
+        <lightning:card title="환불 계좌 번호" class="slds-m-around_large modal-refund slds-p-around_small">
+            <lightning:layout>
+                <lightning:layoutItem size="6">
+                    <lightning:combobox aura:id="refund-bank" label="은행" variant="label-inline" value="{! v.refundParam.bank }"
+                                        required="true"
+                                        disabled="{! or(v.isCompleted, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"
+                                        options="{! v.refundBankOptions}"/>
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout>
+                <lightning:layoutItem size="6">
+                    <lightning:input aura:id="refund-name" label="예금주" variant="label-inline"
+                                     value="{! v.refundParam.receiverName }" placeholder="예금주"
+                                     disabled="{! or(v.isCompleted, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"
+                                     required="true" autocomplete="off"/>
+                </lightning:layoutItem>
+            </lightning:layout>
+            <lightning:layout>
+                <lightning:layoutItem size="6">
+                    <lightning:input aura:id="refund-account" label="계좌번호" variant="label-inline"
+                                     value="{! v.refundParam.bankAccountNo }"
+                                     disabled="{! or(v.isCompleted, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"
+                                     required="true" placeholder="계좌번호" autocomplete="off"/>
+                </lightning:layoutItem>
+            </lightning:layout>
+            <aura:set attribute="footer">
+                <lightning:button label="취소" onclick="{! c.handleCancelRefund}"
+                                  disabled="{! or(v.isCompleted, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+                <lightning:button label="확인" variant="brand" onclick="{! c.handleOkRefund}"
+                                  disabled="{! or(v.isCompleted, v.isDisabled || v.isLocked || v.isLoadingForCommonSpinner)}"/>
+            </aura:set>
+        </lightning:card>
+    </aura:if>
+</aura:component>

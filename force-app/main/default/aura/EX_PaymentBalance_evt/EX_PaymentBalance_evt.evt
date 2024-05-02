@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-07-13.
+ -->
+
+<aura:event type="APPLICATION" description="EX_PaymentBalance_evt">
+    <aura:attribute name="balance" type="Decimal" default=""/>
+</aura:event>

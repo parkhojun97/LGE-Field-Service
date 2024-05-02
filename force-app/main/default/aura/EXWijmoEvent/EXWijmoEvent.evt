@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-07-05.
+ -->
+
+<aura:event type="COMPONENT" description="EXWijmoEvent">
+    <aura:attribute name="payload" type="Object"/>
+</aura:event>

@@ -1,0 +1,24 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-03-02.
+ -->
+
+<aura:event type="APPLICATION" description="EX_SuppliesExchangePart_evt">
+
+    <aura:attribute name="evtType" type="String" description="remove, selected ..."/>
+
+    <aura:attribute name="productId" type="String" />
+    <aura:attribute name="divCode" type="String" description="사업부 코드"/>
+    <aura:attribute name="productCode" type="String" description="파트 번호"/>
+
+    <aura:attribute name="itemId" type="String" description="해당 교환요청을 진행 하는 원 주문 품목 Id"/>
+    <aura:attribute name="customerPrice" type="String" description="해당 교환요청을 진행 하는 품목 가격"/>
+    <aura:attribute name="originConsumerPrice" type="String" description="해당 교환요청을 진행 하는 원 주문 품목 가격"/>
+    <aura:attribute name="originProductId" type="String" default="" description="선택한 회수부품의 주문 부품 Id"/>
+
+
+    <aura:attribute name="requestedReturnQuantity" type="decimal" description="반품 요청 수량"/>
+    <aura:attribute name="exchangeLimitedQuantity" type="decimal" description="교환 제한 수량 / 주문수량 - (반품요청수량 + 반품수량 + 반품예정수량)"/>
+
+    <aura:attribute name="ChannelTypeCode" type="String" default="" description="소모품 주문 채널 코드"/>
+
+</aura:event>

@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.SEUNGHUNAN on 2023-05-11.
+ -->
+
+<aura:event type="APPLICATION" description="EX_SuppliesOrderReturnManagement_evt">
+    <aura:attribute name="isSearchBtnClick" type="Boolean" />
+</aura:event>

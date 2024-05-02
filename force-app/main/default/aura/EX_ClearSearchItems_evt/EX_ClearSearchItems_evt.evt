@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_ClearSearchItems_evt">
+    <aura:attribute name="Initialize" type="Boolean" default="false"/>
+</aura:event>

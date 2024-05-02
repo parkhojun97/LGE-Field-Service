@@ -1,0 +1,9 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-02-28.
+ -->
+
+<aura:event type="APPLICATION" description="EX_PaymentCancelEvent_evt">
+    <aura:attribute name="isCancelPayment" type="Boolean" default="false" description="결제 취소여부 취소시 현재 모달도 닫힘"/>
+    <aura:attribute name="CancelStatus" type="String" default="" description="결제"/>
+
+</aura:event>

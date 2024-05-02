@@ -1,0 +1,217 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-01-25.
+ -->
+
+<aura:component description="EX_SuppliesOrderReturnManagement" implements="force:appHostable,flexipage:availableForAllPageTypes"
+                controller="EX_ReturnOrderManagementController"
+                >
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+
+    <!-- Infinite Loading Datatable -->
+    <!-- Datatable에 처음 조회 및 more Load는 recordLimit Attribute로 조절 -->
+    <aura:attribute name="totalRecord" type="Integer" default="0" />
+    <aura:attribute name="recordLimit" type="Integer" default="50" />
+    <aura:attribute name="pageOffset" type="Integer" default="0" />
+    <aura:registerEvent name="EX_SuppliesOrderReturnManagement_evt" type="c:EX_SuppliesOrderReturnManagement_evt"/>
+    <aura:handler event="c:EX_PaginationResearch_evt" action="{!c.fnPaginationResearch}" />
+
+    <!-- ProductRequest 선택 시 Case -->
+    <!-- <aura:handler event="c:EX_ConsumableOrderList_evt" action="{!c.fnSetPrInfo}"/> -->
+
+    <!-- 팝업을 열기위한 overlayLib -->
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="mapSettingValue" type="Map" default="{}" description="화면 조회조건에 세팅될 값 (Origin과는 별개)"/>
+    <aura:attribute name="mapSettingValueOrigin" type="Map" default="{}"
+                    description="화면에 조회조건 세팅값을 위한 세팅데이터 원본(Init시에 가져오고 변경하지 않을 것."/>
+    <aura:attribute name="mapSearchParam" type="Map" default="{}"/>
+    <aura:attribute name="isShowedFilter" type="Boolean" default="true"/>
+
+    <aura:attribute name="save_disable" type="Boolean" default="false" description="저장버튼 비활성화 여부"/>
+    <aura:attribute name="search_disable" type="Boolean" default="false" description="조회 버튼 비활성화 여부"/>
+
+    <aura:attribute name="userCenterId" type="Id" default="" description="로그인한 사용자의 소속 센터 ID"/>
+
+    <!-- <aura:attribute name="listPT" type="List" default="[]" description="ProductTransfer Data List (출고유형이 출고완료인 경우, Carton Label 출력에 이용)"/> -->
+
+    <!-- table_ReleaseProcessing -->
+    <aura:attribute name="listPR" type="List" default="[]" description="ProductRequest Data List"/>
+    <aura:attribute name="listPRLI" type="List" default="[]" description="ProductRequestLineItem Data List"/>
+    <!-- 23.01.20 / I2MAX.SanghunYeo -->
+    <aura:attribute name="listDummyPRLI" type="List" default="[]" description="ProductRequestLineItem Dummy Data List"/>
+    <aura:attribute name="initializeFlag" type="Boolean" default="" description="초기화 용 Flag"/>
+
+    <aura:attribute name="columns" type="List" default="[]" description="Columns List"/>
+
+    <aura:attribute name="objCaseId" type="String" description="Case로 생성된 소모품 주문의 CaseId" />
+    <aura:attribute name="objCase" type="Case" description="Case로 생성된 소모품 주문의 Case" />
+    <aura:attribute name="curOrderNumber" type="String" description="선택된 주문의 주문번호" />
+    <aura:attribute name="productRequestDescription" type="String" description="Case 상담이력 히스토리 중 현재 주문에 대한 상담이력" />
+
+    <aura:attribute name="channel" type="String" default=""/>
+    <aura:attribute name="status" type="String" default=""/>
+<!--    <aura:attribute name="linkage_YN" type="Boolean" default="false"/>-->
+    <aura:attribute name="collection_YN" type="Boolean" default="false"/>
+    <!-- table_Carton -->
+    <aura:attribute name="listCarton" type="List" default="[]" description="Carton Data List"/>
+    <aura:attribute name="columns_Carton" type="List" default="[]" description="Columns List"/>
+
+    <!-- Public Model Modal -->
+    <aura:attribute name="modalContent" type="Aura.Component"/>
+
+    <!--slaveGridAccordian-->
+    <aura:attribute name="activeSections" type="List" default="['A','B']"/>
+    <aura:attribute name="activeSectionsMessage" type="String" default=""/>
+
+    <!--23 09 07 hyungho.chun 리스트 라벨 형태로 속도 테스트-->
+    <aura:attribute name="listOrderChannel" type="List" default="[]"/>
+    <aura:attribute name="listOrderStatusCode" type="List" default="[]"/>    
+
+    <!--Lightning Spinner-->
+    <aura:if isTrue="{!v.showSpinner}">
+        <div>
+            <lightning:spinner  variant="brand" alternativeText="Waiting" size="large" />
+        </div>
+    </aura:if>
+
+    <div>
+        <lightning:layout multipleRows="true" class="con" >
+            <!-- 신규 조회영역 Start-->
+            <lightning:layoutItem size="12" padding="horizontal-small" class="searchWrap">
+                <div class="topTtl">
+                    <p>소모품반품관리</p>
+                </div>
+                <div class="searchCompsWrap">
+                    <div class="searchConWrap" onkeyup="{!c.fnEnter}">
+                        <div class="testFlex1">
+                            <div class="slds-grid slds-wrap slds-gutters_xx-small searchinner">
+                                <div class="slds-col slds-size_1-of-12 col-width">
+                                    <lightning:select label="주문채널" value="{! v.mapSearchParam.orderChannel }"
+                                                      variant="label-inline">
+                                        <option value="ALL">ALL</option>
+                                        <aura:iteration items="{! v.listOrderChannel }" var="item">
+                                        <!-- <aura:iteration items="{! v.mapSettingValue.Comm.listOrderChannel }" var="item"> -->
+                                            <option value="{!item.value}">{!item.label}</option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                                <div class="slds-col slds-size_1-of-12 col-width">
+                                    <lightning:select label="반품상태" value="{! v.mapSearchParam.orderStatus }"
+                                                      variant="label-inline">
+                                        <!-- <option value="ALL">ALL</option> -->
+                                        <aura:iteration items="{! v.listOrderStatusCode }" var="item">
+                                        <!-- <aura:iteration items="{! v.mapSettingValue.Comm.listOrderStatusCode }"
+                                                        var="item" indexVar="index"> -->
+                                                <option value="{!item.value}" selected="{!item.selected}">{!item.label}</option>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                                <div class="slds-col slds-size_1-of-12">
+                                    <lightning:input label="주문번호" name="searchPartNo"
+                                                     value="{!v.mapSearchParam.orderNo}"/>
+                                </div>
+<!--                                주문 sub번호 -->
+<!--                                <div class="slds-col slds-size_1-of-12">-->
+<!--                                    <lightning:input label="주문sub번호" name="searchSubOrderNo"-->
+<!--                                                     value="{!v.mapSearchParam.orderSubNo}"/>-->
+<!--                                </div>-->
+<!--                                주문 sub번호 -->
+
+                                <div class="slds-col slds-size_2-of-12" style="display: inline-table;">
+                                    <!--Period input Start-->
+                                    <ul class="periodWrap">
+                                        <li class="date-width">
+                                            <lightning:input type="date" name="searchSDate"
+                                                             value="{!v.mapSearchParam.baseDateStart}"
+                                                             label="반품요청일자"/>
+                                        </li>
+                                        <li>~</li>
+                                        <li class="date-width">
+                                            <lightning:input type="date" name="searchEDate"
+                                                             value="{!v.mapSearchParam.baseDateEnd}" label="반품요청일자"
+                                                             variant="label-hidden"/>
+                                        </li>
+                                    </ul>
+                                    <!--Period input End-->
+                                </div>
+                                <div class="slds-col slds-size_1-of-12 col-width">
+                                    <lightning:input label="고객명" type="text"
+                                                         value="{! v.mapSearchParam.contactName }"/>
+                                </div>
+                                <div class="slds-col slds-size_1-of-12 col-width">
+                                    <lightning:input label="고객 전화번호" type="text"
+                                                     value="{! v.mapSearchParam.contactPhone }"
+                                                     onchange="{!c.fnPhoneChg}"/>
+                                </div>
+
+
+
+                                <div class="slds-col slds-size_1-of-12 col-width">
+                                    <lightning:input label="CJ반품주문번호" name="searchPartNo"
+                                                     value="{!v.mapSearchParam.CJorderNo}"/>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-12 col-width">
+                                    <lightning:input name="searchPartNo" label="Part No"
+                                                     value="{!v.mapSearchParam.partNo}"/>
+                                </div>
+
+
+
+                                <!-- slds-col slds-size_2-of-12  -->
+                                <div class="vtalignMT" style="display: inline-block;">
+                                    <ul class="checkBoxWrap">
+<!--                                        <li>-->
+<!--                                            <lightning:input label="연동여부"  type="checkbox" name=""-->
+<!--                                                             value="{!v.linkage_YN}"/>-->
+<!--                                        </li>-->
+                                        <li>
+                                            <lightning:input label="수거여부"  type="checkbox" name=""
+                                                             checked="{!v.collection_YN}" />
+<!--                                                             value="{!v.collection_YN}"  />-->
+
+                                        </li>
+                                    </ul>
+                                </div>
+
+
+
+                            </div>
+
+
+                        </div>
+                        <div class="searchBtnWrap">
+                            <lightning:button label="조회" iconName="utility:search" iconPosition="left"
+                                              disabled="{!v.search_disable}" onclick="{!c.fnSearch}" />
+                        </div>
+                    </div>
+                </div>
+
+            </lightning:layoutItem>
+            <!-- 신규 조회영역 End-->
+            <lightning:layoutItem size="12" padding="{!IF(v.isShowedFilter, 'horizontal-small', 'around-small')}">
+                <div class="slds-card_boundary">
+                    <div class="slds-card gridWrap">
+<!--                        <c:EX_ReturnOrderList data="{!v.listPR}" channel="{!v.channel}" status="{!v.status}"  collection_YN="{!v.collection_YN}" showSpinner="{!v.showSpinner}"/>-->
+                        <c:EX_ReturnOrderList data="{!v.listPR}"
+                                              channel="{!v.channel}"
+                                              status="{!v.status}"
+                                              showSpinner="{!v.showSpinner}"
+                                              totalRecord="{!v.totalRecord}"
+                                              recordLimit="{!v.recordLimit}"/>
+
+                    </div>
+                </div>
+                <!--Grid Wrap End-->
+            </lightning:layoutItem>
+            <br/>
+
+
+        </lightning:layout>
+
+    </div>
+
+</aura:component>

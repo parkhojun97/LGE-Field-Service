@@ -1,0 +1,8 @@
+<aura:event type="APPLICATION" description="Event template">
+    <!-- 이전 Tab Id-->
+    <aura:attribute name="previousTabId" type="String" />
+    <!--23 12 20 hyungho.chun previousTabName variable 추가 -->
+    <aura:attribute name="previousTabName" type="String" />
+    <!-- 호출진행한 Tab -->
+    <aura:attribute name="focusTabId" type="String" />
+</aura:event>

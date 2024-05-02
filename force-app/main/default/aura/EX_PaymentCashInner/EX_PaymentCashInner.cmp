@@ -1,0 +1,156 @@
+<!--
+ - Created by A78916 on 2022-12-19.
+ -->
+
+<aura:component description="EX_PaymentCashInner" extends="c:FNCommon">
+    <lightning:navigation aura:id="navService"/>
+
+    <aura:handler name="init" value="{! this }" action="{! c.onInit }"/>
+    <aura:registerEvent name="onRequest" type="c:FN_PaymentEvent"/>
+    <!--23 10 19 hyungho.chun 현금영수증관련 정보 송신 이벤트-->
+    <aura:registerEvent name="EX_ReceiptInfoEvent_evt" type="c:EX_ReceiptInfoEvent_evt"/>
+    <aura:attribute name="buttons" type="Aura.Component[]"/>
+
+    <aura:attribute name="proofTypeOptions" type="List" default="[
+    {'label': '현금영수증', 'value': 'B'}
+    ]"/>
+    <aura:attribute name="proofCashTypeOptions" type="List" default="[
+    {'label': '소득공제', 'value': 'CA'},
+    {'label': '자진발급', 'value': 'CB'},
+    {'label': '사업자지출증빙', 'value': 'CC'},
+    ]"/>
+    <aura:attribute name="proofCashNoTypeOptions" type="List" default="[
+    {'label': '휴대폰번호', 'value': 'B'}
+
+    ]"/>
+    <aura:attribute name="proofCashNoTypeOptions2" type="List" default="[
+    {'label': '사업자번호', 'value': 'F'},
+    {'label': '휴대폰번호', 'value': 'B'},
+    ]"/>
+    <aura:attribute name="param" type="Map" description="선택 값들 저장" default="{}"/>
+
+    <aura:attribute name="disabled" type="Boolean" default="false" description="버튼을 제외한 모든 필드 사용 여부"/>
+    <aura:attribute name="status" type="String" default="progressing"
+                    description="PROGRESS_STATE__c, progressing/completed"/>
+
+    <aura:attribute name="filetype" type="List" default="['.jpeg', '.jpg', '.png', '.bmp']" description="첨부파일 종류"/>
+    <aura:attribute name="containerId" type="String" default="" description="첨부파일 첨부를 위한 recordId"/>
+    <aura:attribute name="fileId" type="String" default="" description="첨부파일 document Id"/>
+    <aura:attribute name="phone" type="String" default="" description="기본 전화 번호"/>
+
+    <aura:handler name="change" value="{! v.phone}" action="{! c.onChangePhone}"/>
+
+    <aura:method name="reset" action="{!c.reset}" description="초기화"/>
+    <aura:method name="getCashData" action="{!c.getCashData}" description="AR_CONFIRM 에 저장할 데이터 반환, type: Object"/>
+    <aura:method name="setCashData" action="{!c.setCashData}" description="데이터 반영">
+        <aura:attribute name="data" type="SR_AR_CONFIRM__c" description="SR_AR_CONFIRM__c"/>
+        <aura:attribute name="fileId" type="String" description="ContentDocument.Id"/>
+        <aura:attribute name="containerId" type="String" description="SR_PRE_PAYMENT_FILE.Id"/>
+    </aura:method>
+    <aura:method name="validate" action="{!c.validate}" description="입력값 오류 검사">
+        <aura:attribute name="callback" type="Function" description="검사 후 오류가 없다면 실행"/>
+    </aura:method>
+
+    <div>
+        <lightning:layout>
+            <lightning:layoutItem size="12">
+                <lightning:radioGroup label="증빙선택"
+                                      options="{! v.proofTypeOptions }"
+                                      value="{! v.param.proofType }"
+                                      disabled="{! v.disabled }"
+                                      onchange="{! c.handleChangeType}"
+                                      variant="label-inline"/>
+            </lightning:layoutItem>
+        </lightning:layout>
+        <aura:if isTrue="{! v.param.proofType == 'B'}">
+            <lightning:layout>
+                <lightning:layoutItem size="12">
+                    <lightning:radioGroup label=""
+                                          options="{! v.proofCashTypeOptions }"
+                                          value="{! v.param.proofCashType }"
+                                          disabled="{! v.disabled }"
+                                          onchange="{! c.handleChangeCashType}"
+                                          variant="label-inline"/>
+                </lightning:layoutItem>
+            </lightning:layout>
+            <aura:if isTrue="{!v.param.proofCashType != 'CB'}">
+                <lightning:layout>
+                    <lightning:layoutItem size="12">
+                        <lightning:radioGroup label="발급유형"
+                                              options="{! v.param.proofCashType == 'CA' ? v.proofCashNoTypeOptions : v.proofCashNoTypeOptions2 }"
+                                              value="{! v.param.proofCashNoType }"
+                                              disabled="{! v.disabled }"
+                                              onchange="{! c.handleChangeCashNoType}"
+                                              variant="label-inline"/>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+        </aura:if>
+        <!-- <aura:if isTrue="{! v.param.proofType == 'A'}">
+            <lightning:layout>
+                <lightning:layoutItem size="12">
+                    <div class="slds-form-element_horizontal slds-form-element">
+                        <label class="slds-form-element__label">거래처</label>
+                        <div class="slds-form-element__control">
+                            <aura:if isTrue="{! v.status == 'completed'}">
+                                <lightning:recordEditForm objectApiName="SR_AR_CONFIRM__c" >
+                                    <lightning:inputField aura:id="cash_account_id" fieldName="Account_Id__c" class="hide-label"
+                                                          onchange="{! c.handleChange}"
+                                                          disabled="{! v.disabled }"/>
+                                </lightning:recordEditForm>
+                            </aura:if>
+                            <aura:if isTrue="{! v.status != 'completed'}">
+                                <lightning:recordEditForm objectApiName="SR_PRE_PAYMENT_DETAIL__c">
+                                    <lightning:inputField aura:id="cash_account_id" fieldName="ACCOUNT_ID__c" class="hide-label"
+                                                          onchange="{! c.handleChange}"
+                                                          disabled="{! v.disabled }"/>
+                                </lightning:recordEditForm>
+                            </aura:if>
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if> -->
+        <lightning:layout>
+            <aura:if isTrue="{! v.param.proofType == 'B'}">
+                <lightning:layoutItem size="6">
+                    <lightning:input aura:id="proofNo" label="발급번호" variant="label-inline"
+                                     value="{! v.param.proofNo}"
+                                     onchange="{! c.handleChange}" onblur="{! c.handleBlur}"
+                                     disabled="{! v.disabled || v.param.proofCashType == 'CB'}"/>
+                </lightning:layoutItem>
+            </aura:if>
+            <!-- <aura:if isTrue="{! v.param.proofType == 'A'}">
+                <lightning:layoutItem>
+                    <aura:if isTrue="{! empty(v.fileId)}">
+                        <lightning:fileUpload label="사업자등록증"
+                                              name="fileUploader"
+                                              multiple="false"
+                                              accept="{!v.filetype}"
+                                              recordId="{!v.containerId}"
+                                              disabled="{! or(not(empty(v.fileId)), empty(v.containerId) || v.disabled)}"
+                                              onuploadfinished="{!c.handleUploadFinished}"
+                                              class="slds-form-element_horizontal"/>
+                    </aura:if>
+                    <aura:if isTrue="{! not(empty(v.fileId))}">
+                        <div class="slds-form-element_horizontal">
+                            <label class="slds-form-element__label">사업자등록증</label>
+                            <div class="slds-form-element__control">
+                                <lightning:buttonIcon iconName="utility:preview" alternativeText="미리보기"
+                                                      onclick="{! c.handleClickPreview}"
+                                                      disabled="{! empty(v.fileId)}"></lightning:buttonIcon>
+                                <lightning:buttonIcon iconName="utility:delete" alternativeText="파일삭제" onclick="{! c.handleClickDelete}"
+                                                      disabled="{! empty(v.fileId) || v.disabled}"></lightning:buttonIcon>
+                            </div>
+                        </div>
+                    </aura:if>
+                </lightning:layoutItem>
+            </aura:if> -->
+            <lightning:layoutItem class="slds-grid">
+                <div class="narrow-button">
+                    {! v.buttons}
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>
+</aura:component>

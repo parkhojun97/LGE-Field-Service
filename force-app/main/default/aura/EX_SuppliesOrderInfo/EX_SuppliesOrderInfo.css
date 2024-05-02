@@ -1,0 +1,64 @@
+/**
+ * Created by sm.yang on 2022-11-13.
+ */
+
+.THIS .centerDiv {
+    padding-top: 10px;
+}
+
+.THIS .slds-form-element_stacked:not(.slds-form-element_readonly){
+    margin-bottom: 0px;
+}
+
+.THIS .slds-tabs_scoped__item{
+    font-size: var(--lwc-fontSize5,1rem);
+}
+
+.THIS .inputLabelPosLeft {
+    display: -webkit-box;
+}
+
+.THIS .inputTaLabelPosLeft > label{
+    padding-top:8px;
+}
+
+.THIS .inputTaLabelPosLeft {
+    display: flex;
+}
+
+.THIS .slds-textarea{
+    height: 5.4vh;
+}
+
+.THIS .labelHidden > span {
+    display:none;
+    width:0px;
+}
+
+.THIS .bgWhite {
+    background-color:white !important;
+}
+
+.THIS .bgWhite {background: #fff;}
+.THIS  .tabInner1+.tabInner1 {margin-top: 12px;}
+.THIS  .tabInner1 li {flex: 1;}
+.THIS  .tabInner1 li+li {margin-left: 16px;}
+.THIS  .tabInner1 .inputSearch {position: relative;}
+.THIS  .tabInner1 .inputSearch button {position: absolute; bottom: 8px; right: 6px;}
+.THIS .wrapFlex {display: flex;}
+.THIS .detailBoxWrap .gridMasterBottom {display: flex;}
+.THIS .detailBoxWrap .gridMasterBottom .gridMasterBtnWrap {display: flex; margin-left: auto; justify-content: flex-end;}
+.THIS .mt_16 {margin-top: 16px;}
+.THIS .gridWrap .gridMasterBottom .gridMasterBtnWrap {display: flex; margin-left: auto; justify-content: flex-end;}
+.THIS .detailBoxWrap .tabInner3 {display: flex;}
+.THIS .detailBoxWrap .tabInner3 > li {flex: 1;}
+.THIS .detailBoxWrap .tabInner3 > li:nth-child(1) {padding: 0 12px 0 0;}
+.THIS .detailBoxWrap .tabInner3 > li:nth-child(2) {padding: 0 0 0 12px;}
+.THIS .detailBoxWrap .tabInner3 > li+li {border-left: 1px solid #D8D8D8;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList {height: 100%; display: flex; flex-direction: column;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList > li {padding: 2px 0;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList > li:last-child { margin-top: auto; font-weight: 600;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .acTtl {font-size: 16px; margin-bottom: 4px;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .accountInfo {display: flex;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .accountInfo > li {flex: 1; }
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .accountInfo > li:nth-child(2) {text-align: right;}

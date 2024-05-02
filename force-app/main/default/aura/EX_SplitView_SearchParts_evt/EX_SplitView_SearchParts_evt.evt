@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_SplitView_SearchParts_evt">
+    <aura:attribute name="isSplitOpened" type="Boolean"/>
+</aura:event>

@@ -1,0 +1,158 @@
+/**
+ * Created by I2MAX.SEOKHOLEE on 2022/12/25.
+ */
+
+/*margin*/
+.THIS .mt_2 {margin-top: 2px;}
+.THIS .mt_4 {margin-top: 4px;}
+.THIS .mt_6 {margin-top: 6px;}
+.THIS .mt_8 {margin-top: 8px;}
+.THIS .mt_12 {margin-top: 12px;}
+.THIS .mt_16 {margin-top: 16px;}
+.THIS .mt_24 {margin-top: 24px;}
+.THIS .mt_26 {margin-top: 26px;}
+.THIS .mt_32 {margin-top: 32px;}
+.THIS .mt_48 {margin-top: 48px;}
+
+.THIS .mr_2 {margin-right: 2px;}
+.THIS .mr_4 {margin-right: 4px;}
+.THIS .mr_6 {margin-right: 6px;}
+.THIS .mr_8 {margin-right: 8px;}
+.THIS .mr_12 {margin-right: 12px;}
+.THIS .mr_16 {margin-right: 16px;}
+.THIS .mr_24 {margin-right: 24px;}
+.THIS .mr_26 {margin-right: 26px;}
+.THIS .mr_32 {margin-right: 32px;}
+.THIS .mr_48 {margin-right: 48px;}
+
+.THIS .mb_2 {margin-bottom: 2px;}
+.THIS .mb_4 {margin-bottom: 4px;}
+.THIS .mb_6 {margin-bottom: 6px;}
+.THIS .mb_8 {margin-bottom: 8px;}
+.THIS .mb_12 {margin-bottom: 12px;}
+.THIS .mb_16 {margin-bottom: 16px;}
+.THIS .mb_24 {margin-bottom: 24px;}
+.THIS .mb_26 {margin-bottom: 26px;}
+.THIS .mb_32 {margin-bottom: 32px;}
+.THIS .mb_48 {margin-bottom: 48px;}
+
+.THIS .ml_2 {margin-left: 2px;}
+.THIS .ml_4 {margin-left: 4px;}
+.THIS .ml_6 {margin-left: 6px;}
+.THIS .ml_8 {margin-left: 8px;}
+.THIS .ml_12 {margin-left: 12px;}
+.THIS .ml_16 {margin-left: 16px;}
+.THIS .ml_24 {margin-left: 24px;}
+.THIS .ml_26 {margin-left: 26px;}
+.THIS .ml_32 {margin-left: 32px;}
+.THIS .ml_48 {margin-left: 48px;}
+
+
+/*padding*/
+.THIS .pt_2 {padding-top: 2px;}
+.THIS .pt_4 {padding-top: 4px;}
+.THIS .pt_6 {padding-top: 6px;}
+.THIS .pt_8 {padding-top: 8px;}
+.THIS .pt_12 {padding-top: 12px;}
+.THIS .pt_16 {padding-top: 16px;}
+.THIS .pt_24 {padding-top: 24px;}
+.THIS .pt_32 {padding-top: 32px;}
+.THIS .pt_48 {padding-top: 48px;}
+
+.THIS .pr_2 {padding-right: 2px;}
+.THIS .pr_4 {padding-right: 4px;}
+.THIS .pr_6 {padding-right: 6px;}
+.THIS .pr_8 {padding-right: 8px;}
+.THIS .pr_12 {padding-right: 12px;}
+.THIS .pr_16 {padding-right: 16px;}
+.THIS .pr_24 {padding-right: 24px;}
+.THIS .pr_32 {padding-right: 32px;}
+.THIS .pr_48 {padding-right: 48px;}
+
+.THIS .pb_2 {padding-bottom: 2px;}
+.THIS .pb_4 {padding-bottom: 4px;}
+.THIS .pb_6 {padding-bottom: 6px;}
+.THIS .pb_8 {padding-bottom: 8px;}
+.THIS .pb_12 {padding-bottom: 12px;}
+.THIS .pb_16 {padding-bottom: 16px;}
+.THIS .pb_24 {padding-bottom: 24px;}
+.THIS .pb_32 {padding-bottom: 32px;}
+.THIS .pb_48 {padding-bottom: 48px;}
+
+.THIS .pl_2 {padding-left: 2px;}
+.THIS .pl_4 {padding-left: 4px;}
+.THIS .pl_6 {padding-left: 6px;}
+.THIS .pl_8 {padding-left: 8px;}
+.THIS .pl_12 {padding-left: 12px;}
+.THIS .pl_16 {padding-left: 16px;}
+.THIS .pl_24 {padding-left: 24px;}
+.THIS .pl_32 {padding-left: 32px;}
+.THIS .pl_48 {padding-left: 48px;}
+
+.THIS .slds-modal__header{
+    overflow:auto;
+}
+
+
+
+.THIS .inputLabelPosLeft {
+    display: -webkit-box;
+}
+
+.THIS .inputTaLabelPosLeft > label{
+    padding-top:8px;
+}
+
+.THIS .inputTaLabelPosLeft {
+}
+.THIS .inputLabelPosLeft > div {
+    display:flex !important;
+}
+
+.THIS .container {display: flex; height: 150px; box-sizing: border-box;}
+.THIS .container.noflex {display: block; box-sizing: border-box;}
+.THIS .topAcco {background: #F5F5F5;}
+.THIS .topAcco .slds-accordion__summary {border-bottom: 1px solid #E8E8E8; background: #fff;}
+.THIS .topAcco .slds-accordion__summary button:hover {color: #706E6B;}
+.THIS .topAcco .slds-accordion__summary span {font-size: 16px; color: #1f1f1f;}
+.THIS .topAcco .slds-accordion__content {display: flex;}
+.THIS .topAcco .detailInfoWrap {margin-top: 12px;}
+.THIS .topAcco .detailInfoWrap .detailDataInner {display: flex;}
+.THIS .topAcco .detailInfoWrap .detailDataInner li:nth-child(1) {width: 70px; font-size: 14px;font-weight: 500;}
+.THIS .topAcco .detailInfoWrap .detailDataInner li:nth-child(2) {flex: 1; border-left: 1px solid #4F4F4F; padding-left: 12px;}
+.THIS .topAcco .detailInfoWrap .detailDataInner li:nth-child(2) lightning-input {flex: 1;}
+.THIS .topAcco .detailInfoWrap .detailDataInner li:nth-child(2) lightning-input + lightning-input {margin-left: 16px;}
+.THIS .wrapFlex {display: flex;}
+.THIS .textField .slds-textarea {height: 97px;}
+.THIS .deliveryWrap {background: #fff; padding: 0px 0 32px 0;}
+.THIS .deliveryWrap .orderWrap {padding: 0 12px;}
+.THIS .deliveryWrap .orderWrap > li:nth-child(n+2) {margin-bottom: 12px;}
+.THIS .deliveryWrap .orderWrap .orderTtl {padding: 10px 0; font-size: 16px; font-weight: 500;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .detailBoxTtl, .THIS .datatableWrap .detailBoxTtl {padding: 4px 0; font-size: 16px; font-weight: 500;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .detailBoxBottom {padding: 6px 0; font-size: 13px; font-weight: 500;}
+.THIS .detailBoxWrap {border: 1px solid #D8D8D8; border-radius: 6px; background: #fff; padding: 16px;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .slds-tabs_default__content {background: #F5F5F5; padding: 10px 12px;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .tabInner1+.tabInner1 {margin-top: 12px;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .tabInner1 li {flex: 1;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .tabInner1 li+li {margin-left: 16px;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .tabInner1 .inputSearch {position: relative;}
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .tabInner1 .inputSearch button {position: absolute; bottom: 8px; right: 6px;}
+
+.THIS .deliveryWrap .orderWrap .detailBoxWrap .checkBoxWrapT .slds-form-element__control {display: flex;}
+.THIS .detailBoxWrap .tabInner3 {display: flex;}
+.THIS .detailBoxWrap .tabInner3 > li {flex: 1;}
+.THIS .detailBoxWrap .tabInner3 > li:nth-child(1) {padding: 0 12px 0 0;}
+.THIS .detailBoxWrap .tabInner3 > li:nth-child(2) {padding: 0 0 0 12px;}
+.THIS .detailBoxWrap .tabInner3 > li+li {border-left: 1px solid #D8D8D8;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList {height: 100%; display: flex; flex-direction: column;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList > li {padding: 2px 0;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList > li:last-child { margin-top: auto; font-weight: 600;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .acTtl {font-size: 16px; margin-bottom: 4px;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .accountInfo {display: flex;}
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .accountInfo > li {flex: 1; }
+.THIS .detailBoxWrap .tabInner3 .accountDetailList .accountInfo > li:nth-child(2) {text-align: right;}
+
+.THIS .detailBoxWrap .gridMasterBottom {display: flex;}
+.THIS .detailBoxWrap .gridMasterBottom .gridMasterBtnWrap {display: flex; margin-left: auto; justify-content: flex-end;}
+
+.THIS .newCmp {z-index:103}

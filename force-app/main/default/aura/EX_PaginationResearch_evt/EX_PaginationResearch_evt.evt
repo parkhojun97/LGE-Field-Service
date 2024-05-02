@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.SEUNGHUNAN on 2023-05-05.
+ -->
+
+<aura:event type="APPLICATION" description="EX_PaginationResearch_evt">
+    <aura:attribute name="pageNumber" type="Integer" />
+</aura:event>

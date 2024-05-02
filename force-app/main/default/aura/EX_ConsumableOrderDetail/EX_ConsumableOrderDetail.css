@@ -1,0 +1,108 @@
+/**
+ * Created by I2MAX.SEOKHOLEE on 2023-01-04.
+ */
+
+.THIS {
+}
+
+.THIS .gridWrap .gridSlave .gridSlaveInner {
+    border-bottom: 1px solid #D8D8D8;
+}
+
+.THIS.c-container {
+    border: 1px solid #d8dde6;
+    margin: 10px 0 20px 0;
+}
+
+.THIS .large {
+    height: 200px;
+}
+
+.THIS .x-large {
+    height: auto;
+}
+
+.THIS .custom-box {
+    background-color: #f4f6f9;
+    padding: 1rem;
+    border: 1px solid #d8dde6;
+}
+
+.THIS .custom-box-align {
+    text-align: center;
+}
+
+.THIS .centerDiv {
+    padding-top: 10px;
+}
+
+.THIS .slds-form-element_stacked:not(.slds-form-element_readonly) {
+    margin-bottom: 0px;
+}
+
+.THIS .slds-tabs_scoped__item {
+    font-size: var(--lwc-fontSize5, 1rem);
+}
+
+.THIS .inputLabelPosLeft {
+    display: -webkit-box;
+}
+
+.THIS .inputTaLabelPosLeft > label {
+    padding-top: 8px;
+}
+
+.THIS .inputTaLabelPosLeft {
+    display: flex;
+}
+
+.THIS .slds-textarea {
+    height: 5.4vh;
+}
+
+.THIS .labelHidden > span {
+    display: none;
+    width: 0px;
+}
+
+.THIS .width_50 {
+    width: 50% !important;
+}
+
+.THIS .width_80 {
+    width: 80% !important;
+}
+
+.THIS .width_100 {
+    width: 100% !important;
+}
+
+.THIS .text_area_height_50 {
+    --slds-c-textarea-sizing-min-height: 50px;
+}
+
+.THIS .text_area_height_25 {
+    --slds-c-textarea-sizing-min-height: 25px;
+}
+
+.THIS .text_area_height_50 .slds-textarea  {
+    background-color: rgb(243, 243, 243);
+}
+
+.THIS .btn_height_50 {
+    height: 50%;
+}
+
+.THIS .slds-textarea[disabled] {
+    height: 100px !IMPORTANT;
+}
+
+.THIS .gridSlaveBtn {color: #1f1f1f; height: 26px;}
+.THIS .gridSlaveTable .slds-table_header-fixed_container {background: transparent;}
+.THIS .gridSlaveTable .slds-table_header-fixed thead th {background: #D8D8D8;}
+.THIS .gridSlaveTable .slds-cell-fixed {background: #D8D8D8;}
+.THIS .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:hover,
+.THIS .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:focus
+{color: #1f1f1f; text-decoration: none;}
+.THIS .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon {order: 2;}
+.THIS .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon svg {margin: 0 0 0 8px;}

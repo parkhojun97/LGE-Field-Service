@@ -1,0 +1,62 @@
+/**
+ * Created by I2MAX.SEOKHOLEE on 2023-01-04.
+ */
+
+.THIS {
+}
+
+.THIS .gridWrap .gridSlave .gridSlaveInner {border-bottom: 1px solid #D8D8D8;}
+
+.THIS.c-container {
+    border: 1px solid #d8dde6;
+    margin: 10px 0 20px 0;
+}
+.THIS .large {
+    height: 200px;
+}
+.THIS .x-large {
+    height: 300px;
+}
+.THIS .custom-box {
+    text-align: center;
+    background-color: #f4f6f9;
+    padding: 1rem;
+    border: 1px solid #d8dde6;
+}
+
+.THIS .centerDiv {
+    padding-top: 10px;
+}
+
+.THIS .slds-form-element_stacked:not(.slds-form-element_readonly){
+    margin-bottom: 0px;
+}
+
+.THIS .slds-tabs_scoped__item{
+    font-size: var(--lwc-fontSize5,1rem);
+}
+
+.THIS .inputLabelPosLeft {
+    display: -webkit-box;
+}
+
+.THIS .inputTaLabelPosLeft > label{
+    padding-top:8px;
+}
+
+.THIS .inputTaLabelPosLeft {
+    display: flex;
+}
+
+.THIS .slds-textarea{
+    height: 5.4vh;
+}
+
+.THIS .labelHidden > span {
+    display:none;
+    width:0px;
+}
+
+.THIS .width_80 {
+    width: 80% !important;
+}

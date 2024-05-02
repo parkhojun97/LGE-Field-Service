@@ -1,0 +1,15 @@
+<aura:event type="APPLICATION" description="EX_SuppliesConsigneeEvt">
+
+    <aura:attribute name="isContactSame" type="Boolean" />
+    <aura:attribute name="consigneeName" type="String" />
+    <aura:attribute name="IbCallNo" type="String" />
+    <aura:attribute name="phoneCol" type="String" />
+    <aura:attribute name="zoneCode" type="String" />
+    <aura:attribute name="newAddress" type="String" />
+    <aura:attribute name="detailAddress" type="String" />
+    <aura:attribute name="requestedTerm" type="String" />
+    <aura:attribute name="remark" type="String" />
+    <aura:attribute name="managerNote" type="String" />
+    <aura:attribute name="isCreateOrder" type="Boolean" default="false" />
+
+</aura:event>

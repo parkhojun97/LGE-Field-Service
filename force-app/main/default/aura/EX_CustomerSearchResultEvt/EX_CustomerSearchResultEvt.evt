@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2022-12-19.
+ -->
+
+<aura:event type="APPLICATION" description="EX_CustomerSearchResultEvt">
+    <aura:attribute name="objData" type="Object" />
+</aura:event>

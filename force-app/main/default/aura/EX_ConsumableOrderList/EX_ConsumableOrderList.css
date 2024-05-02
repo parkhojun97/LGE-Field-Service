@@ -1,0 +1,16 @@
+/**
+ * Created by I2MAX.SEOKHOLEE on 2023-01-05.
+ */
+
+
+
+.THIS .gridHeaderWrap {display: flex; margin-bottom: 8px;}
+.THIS .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS .gridHeaderWrap .gridHeaderBtnWrap .gridSlaveBtn {color: #cccaca; height: 26px;}
+.THIS .gridHeaderWrap .gridHeaderBtnWrap .gridSlaveBtnDisabled {color: #cccaca; height: 26px;}
+.THIS .gridMaster {border-bottom: 1px solid #D8D8D8;}
+.THIS .gridMaster .slds-table_header-fixed_container {background: #fff;}
+.THIS .gridMasterBtnWrap {display: flex; margin-top: 8px; justify-content: flex-end;}
+
+.THIS .gridSlaveBtnDisabled {color: #cccaca; height: 26px;}

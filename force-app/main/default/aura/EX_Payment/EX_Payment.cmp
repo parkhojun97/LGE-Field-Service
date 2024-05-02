@@ -1,0 +1,171 @@
+<!--
+ - Created by pttc on 12/15/22.
+ -->
+
+<aura:component description="EX_Payment" extends="c:EX_PaymentParent" controller="EX_PaymentUtil">
+
+    <aura:handler name="destroy" value="{!this}" action="{!c.onDestroy}"/>
+    <aura:handler name="init" value="{! this }" action="{! c.onInit }"/>
+    <aura:registerEvent name="EX_PaymentCancelEvent_evt" type="c:EX_PaymentCancelEvent_evt"/>
+    <aura:registerEvent name="EX_PaymentCompleteEvent_evt" type="c:EX_PaymentCompleteEvent_evt"/>
+    <!-- 24 01 02 PHJ -->
+    <aura:registerEvent name="EX_PaymentModalCancelEvt_evt" type="c:EX_PaymentModalCancelEvt_evt"/>
+
+
+    <aura:handler event="c:EX_PaymentCompleteEvent_evt" action="{!c.fnComplete}"/>
+    <!--23 10 20 hyungho.chun 결제완료가능여부 체크 이벤트 추가-->
+    <aura:handler event="c:EX_PaymentCompleted_evt" action="{!c.getReadyToGo}"/>
+    <aura:attribute name="isReadyToGo" type="boolean" default="false"/>
+    <!--23 10 23 gw.lee 알림톡 메세지 전송-->
+    <aura:handler event="c:EX_ExMessageSend_evt" action="{!c.getExMessage}"/>
+    <aura:attribute name="emId" type="String"/>
+    <aura:attribute name="emType" type="String"/>
+    <aura:attribute name="receiverNumber" type="String"/>
+
+    <aura:registerEvent name="EX_ContEmp_evt" type="c:EX_ContEmp_evt"/>
+    <aura:registerEvent name="EX_PaymentExMessage_evt" type="c:EX_PaymentExMessage_evt"/>
+
+    <aura:attribute name="isVirtual" type="boolean" description="결제예약 여부" default="false"/>
+    <aura:attribute name="OrderData" type="List" default="[]"/>
+    <aura:attribute name="SoldOutOrderData" type="List" default="[]" />
+    <aura:attribute name="usedData" type="List" default="[]"/>
+
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="objEmp" type="User"/>
+    <aura:attribute name="serviceResource" type="String"/>
+    <aura:attribute name="prId" type="String"/>
+
+    <aura:attribute name="isManagement" type="boolean" default="false"/>
+
+    <aura:attribute name="paymentSlot" type="String" />
+    <aura:attribute name="paymentType" type="String" />
+    <aura:attribute name="paymentDetail" type="Map" />
+
+    <aura:attribute name="pointPayment" type="Decimal" />
+
+    <aura:attribute name="isReset" type="boolean" default="false" />
+    <aura:attribute name="isEXOpen" type="Boolean"  description="Dialog 상태"      />
+
+    <aura:attribute name="resetFlag" type="boolean" default="false" />
+    <aura:attribute name="pointFlag" type="boolean" default="false"/>
+    <aura:attribute name="cashFlag" type="boolean"  default="false"/>
+    <!-- 24.01.18 gw.lee 결제약버튼 누를 시, 닫기 버튼 비활성화 -->
+    <aura:attribute name="cancelFlag" type="boolean"  default="false"/>
+
+    <aura:attribute name="isRePay" type="Boolean" default="false" description="결제요청 버튼을 클릭해서 진입"/>
+
+    <aura:attribute name="isLoadingForCommonSpinner" type="boolean"  default="true"/>
+
+    <aura:handler event="c:EX_PaymentCancelEvent_evt" action="{!c.fnCancel}" />
+    <aura:handler name="change" value="{!v.isEXOpen}" action="{!c.fnClose}"/>
+    <aura:attribute name="vfUrl" type="String" default="/apex/FN_CardReaderWindow"/>
+    <iframe aura:id='vfFrame' src="{!v.vfUrl}" style="width:0;height:0;display:none" title="VF"></iframe>
+    <c:EX_MessageBox aura:id="dialog"/>
+
+    <!-- 23.09.04 PHJ -->
+    <aura:html tag="style"> 
+        :-webkit-any(.slds-modal, .fix-slds-modal, .slds-modal_prompt, .slds-fade-in-open) .slds-modal__container {
+            max-width   : 500px !important; 
+            min-height  : 300px !important;
+            width       : 30% !important; 
+            height      : 16% !important;
+            text-align  : center; 
+            font-size   : 15px; 
+            font-weight : bold;
+        }
+    </aura:html>
+
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+             aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open" style="height:80%; width:65%; margin-left:20%; margin-top:12%; z-index:104">
+
+        <div style="height:90%">
+
+            <lightning:card title="결제" iconName="standard:case_change_status" class="slds-p-around_xxx-small">
+                <aura:set attribute="actions">
+                    <lightning:badge label="결제하기전 포인트 사용 먼저 확인 부탁드립니다." iconName="utility:warning" class="slds-theme_warning"></lightning:badge>
+                </aura:set>
+
+                <lightning:layout class="slds-m-around_xxx-small slds-p-around_xxx-small">
+                    <lightning:layoutItem class="slds-m-around_xxx-small">
+                        <lightning:input type="number" label="결제 대상 금액" variant="label-inline" class="beside amount-width text-right" value="{! v.totalAmount}"
+                                         disabled="true"/>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem class="slds-m-around_xxx-small">
+                        <lightning:input type="number" label="결제 완료 금액" variant="label-inline" class="beside amount-width text-right" value="{! v.paidAmount}"
+                                         disabled="true"/>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem class="slds-m-around_xxx-small">
+                        <lightning:input type="number" label="남은 금액" variant="label-inline" class="beside amount-width text-right" value="{! v.balance}"
+                                         disabled="true"/>
+
+                    </lightning:layoutItem>
+                    <lightning:layoutItem class="slds-m-around_xxx-small ">
+                        <aura:if isTrue="{!v.isVirtual}">
+                            <div class="slds-form-element_horizontal">
+                                <lightning:button variant="brand" label="닫기" disabled="{!v.cancelFlag}" onclick="{! c.dmlBeforeResend}"/>
+                                <!-- <lightning:button variant="brand" label="결제예약" disabled="{! v.paidAmount != v.totalAmount  || v.balance != 0  || v.isLocked}" onclick="{! c.fnPaymentComplete}" onfocus="{! c.onFocus}"/> -->
+                                <!-- 23 10 19 hyungho.chun 가상계좌 현금영수증 승인버튼 비활성화조건제거-->
+                                <lightning:button variant="brand" label="결제예약" disabled="{! not(v.isReadyToGo) || v.balance != 0  || v.isLocked}" onclick="{! c.fnPaymentComplete}" onfocus="{! c.onFocus}"/>
+                                <aura:if isTrue="{!v.paidAmount == v.totalAmount}">
+                                    <div class="slds-badge slds-m-left_small">'결제예약'버튼을 눌러주세요.</div>
+                                </aura:if>
+                            </div>
+                            
+                            <aura:set attribute="else">
+                                <div class="slds-form-element_horizontal">
+                                    <lightning:button variant="brand" label="닫기" onclick="{! c.dmlBeforeResend}"/>
+                                    <!-- <lightning:button variant="brand" label="결제완료" disabled="{! v.paidAmount != v.totalAmount  || v.balance != 0  || v.isLocked}" onclick="{! c.fnPaymentComplete}" onfocus="{! c.onFocus}"/> -->
+                                    <!-- 23 10 19 hyungho.chun 가상계좌 현금영수증 승인버튼 비활성화조건제거-->
+                                    <lightning:button variant="brand" label="결제완료" disabled="{! not(v.isReadyToGo)  || v.balance != 0  || v.isLocked}" onclick="{! c.fnPaymentComplete}" onfocus="{! c.onFocus}"/>
+                                    <aura:if isTrue="{! v.paidAmount == v.totalAmount}">
+                                        <div class="slds-badge slds-m-left_small">'결제완료'버튼을 눌러주세요.</div>
+                                    </aura:if>
+                                </div>
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+                <div class="slds-border_top slds-m-vertical_xxx-small slds-"></div>
+                <aura:if isTrue="{!v.isLoadingForCommonSpinner}">
+                    <lightning:spinner aura:id="spinner" alternativeText="Loading" variant="brand" size="small"/>
+                </aura:if>
+                <lightning:layout class="slds-no-flex">
+
+                    <lightning:layoutItem size="6" class="slds-m-around_xxx-small slot-container"  >
+                        <p><!--suppress HtmlUnknownAttribute -->
+                            <c:EX_PaymentHeader  aura:id="slot_1" slotNo="1" paymentMethod="Point"
+                                                 onEvent="{! c.onEvent}"/>
+                        </p>
+                    </lightning:layoutItem>
+
+
+                    <lightning:layoutItem size="6" class="slds-m-around_xxx-small slot-container" >
+                        <p><!--suppress HtmlUnknownAttribute -->
+                            <c:EX_PaymentHeader  aura:id="slot_2" slotNo="2" paymentMethod="Credit" onEvent="{! c.onEvent}"/>
+                        </p>
+                    </lightning:layoutItem>
+
+
+                    <lightning:layoutItem size="6" class="slds-m-around_xxx-small slot-container slds-hide">
+                        <p><!--suppress HtmlUnknownAttribute -->
+                            <c:EX_PaymentHeader aura:id="slot_3" slotNo="3" paymentMethod="Card" onEvent="{! c.onEvent}"/>
+                        </p>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="6" class="slds-m-around_xxx-small slot-container slds-hide">
+                        <p><!--suppress HtmlUnknownAttribute -->
+                            <c:EX_PaymentHeader aura:id="slot_4" slotNo="4" paymentMethod="Cash" onEvent="{! c.onEvent}"/>
+                        </p>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+
+
+
+            </lightning:card>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open custom_backdrop" style="z-index:103"></div>
+
+</aura:component>

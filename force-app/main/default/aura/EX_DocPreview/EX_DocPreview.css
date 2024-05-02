@@ -1,0 +1,238 @@
+.THIS html {font-family: 'noto sans kr';}
+.THIS body {color: #1F1F1F; font-family: 'noto sans kr'; font-weight: 300; background: #fff;}
+
+/* .THIS .container > .btn {margin: 60px; padding: 20px 40px; font-size: 130px; border-radius: 40px;}
+/* .THIS .modal {background: #fff;  width: 100%;  height: 100%;  margin: 0;  padding: 0;  transition: all 600ms cubic-bezier(0.86, 0, 0.07, 1);  top: 100%;  position: fixed;  left: 0;
+  text-align: left;}*/
+/* .THIS .modal .header {padding:20px; border-bottom: 1px solid #ddd; font: 300 24px Lato; position: relative;}
+.THIS .modal .body {padding: 20px;} */
+/* .THIS .btn {background: linear-gradient(to right, rgb(220, 227, 91), rgb(69, 182, 73));  padding: 10px 25px;  display: inline-block;  border-radius: 25px;  margin: 20px 0;  color: #fff;
+  position: relative;  transition: all .4s ease;  cursor: pointer;}   */
+
+/* .THIS .container.modal-open .modal {top: 160px;} */
+
+/* hearder */
+.THIS .haeder_container {display: flex; background: #fff; height: 100%; align-content: center; padding: 6px 4px; justify-content: space-between; font-family: 'noto sans kr';}
+.THIS .header_btn {width: 44px; height: 44px;}
+.THIS .header_btn svg {width: 28px; height: 28px;}
+.THIS .header_btnAlignR { margin-left: auto;}
+.THIS .header_ttl {font-size: 1.125rem; padding: 14px 0 0 0;}
+.THIS .btn_naviBack {background: url('/resource/SVGImages/icon_arrowBack.svg') no-repeat 8px 8px; width: 44px; height: 44px; }
+.THIS .btn_naviClose {background: url('/resource/SVGImages/icon_Close.svg') no-repeat 8px 8px; width: 44px; height: 44px; }
+.THIS .btn_naviNoti {background: url('/resource/SVGImages/icon_notification.svg') no-repeat 8px 8px; width: 44px; height: 44px; }
+.THIS .btn_naviSearch {background: url('/resource/SVGImages/icon_Search.svg') no-repeat 8px 8px; width: 44px; height: 44px; }
+.THIS .btn_naviMore {background: url('/resource/SVGImages/icon_menuMore.svg') no-repeat 8px 8px; width: 44px; height: 44px; }
+/* hearder */
+
+/*section Wrap*/
+.THIS .section {padding: 0 12px; background: #fff; font-family: 'noto sans kr';}
+.THIS .section.popup {padding: 0; background: #fff; font-family: 'noto sans kr';}
+.THIS .fullpopup {height: 100%;}
+.THIS .fullwratpPop {height: 100%; overflow: hidden; overflow-y: scroll;}
+.THIS .accor_inner {height: 300px;  background: #F5F5F5;}
+.THIS .accordi .slds-accordion__summary-action {height: 58px;}
+.THIS .wrapFlex {display: flex;}
+.THIS .flex1 {flex: 1;}
+.THIS .btn_tm {margin-top: auto;}
+
+.THIS .mt_4 {margin-top: 4px;}
+.THIS .mt_8 {margin-top: 8px;}
+.THIS .mt_12 {margin-top: 12px;}
+.THIS .mt_16 {margin-top: 16px;}
+.THIS .mt_24 {margin-top: 24px;}
+.THIS .mt_26 {margin-top: 26px;}
+.THIS .mb_8 {margin-bottom: 8px;}
+.THIS .mb_24 {margin-bottom: 24px;}
+
+.THIS .pt_24 {padding-top: 24px;}
+.THIS .pt_16 {padding-top: 16px;}
+.THIS .pt_12 {padding-top: 12px;}
+
+/*button*/
+.THIS .commonBtn {border: 1px solid #c4c4c4; color: #1F1F1F; font-weight: 500;}
+.THIS .btn_w100 {width: 100%;}
+.THIS .btn_c {margin-left: 6px; height: 44px; font-size: 0.875rem; color: #1F1F1F;}
+.THIS .btn_icon {margin-left: 6px; height: 44px; width: 44px;}
+.THIS .btn_icon.btn_ico_search .slds-button__icon{width: 1.5rem; height: 1.5rem; background: url('/resource/SVGImages/icon_Search.svg') no-repeat center; fill: transparent;}
+.THIS .btn_icon.btn_ico_QR .slds-button__icon{width: 1.5rem; height: 1.5rem; background: url('/resource/SVGImages/iconQRcode.svg') no-repeat center; fill: transparent;}
+.THIS .btn_icon.btn_ico_Barcode .slds-button__icon{width: 1.875rem; height: 1.5rem; background: url('/resource/SVGImages/iconBarcode.svg') no-repeat center; fill: transparent;}
+.THIS .btn_edit_L {margin-left: 6px; width: 44px; height: 44px;}
+.THIS .btn_edit_L .slds-button__icon {width: 1.5rem; height: 1.5rem;background: url('/resource/SVGImages/icon_edit2.svg') no-repeat center; fill: transparent;}
+
+
+/*Select*/
+.THIS .MCSCon_SectionWarp {padding: 12px 0 24px 0; border-bottom: 1px solid #E8E8E8;}
+.THIS .MCSCon_SectionWarp.botLineNone {padding: 12px 0 24px 0; border-bottom: none;}
+.THIS .tooltipWraper {display: flex;}
+.THIS .tooltipWrap {position: relative;}
+.THIS .tooltipWrap label > span {font-size: 0.75rem; font-weight: 600; position: relative;}
+.THIS .tooltipWrap label > abbr[title] {background: #E0205C; width: 4px; height: 4px; border-radius: 4px; position: absolute; top: 6px; right: 0px; color: transparent;}
+.THIS .tooltip {position: absolute; right: 0;}
+.THIS .tooltip .slds-button__icon {width: 1rem; height: 1rem; background: url('/resource/SVGImages/icon_tooltip.svg') no-repeat center; fill-opacity: 0;}
+.THIS .helpBtn {position: absolute; top: 3px; right: 0;}
+.THIS .helpBtn .slds-button__icon {background: url('/resource/SVGImages/icon_help.svg') no-repeat center; width: 1rem; height: 1rem; fill-opacity: 0;}
+.THIS .combo_DSC.mb04 {margin-bottom: 0px;}
+.THIS .combo_DSC div::before { display: none;}
+.THIS .combo_DSC label { position: relative;}
+.THIS .label_none > label{ display: none;}
+.THIS .combo_DSC .slds-select_container:after {content: ''; border-bottom: 1px solid #4F4F4F; border-right: 1px solid #4F4F4F; border-top: transparent; width: 10px; height: 10px; transform: rotate(45deg); position: absolute; right: 10px; top: 17px;}
+.THIS .combo_DSC select {border: 0; height: 44px; border-bottom: 1px solid #d8d8d8; background: #F5F5F5; border-radius: 0; font-size: 0.878rem; color: #000; margin-top: 4px;}
+.THIS .combo_DSC select[disabled] {border: 0; height: 44px; border-bottom: 1px solid #d8d8d8; background: #F5F5F5; border-radius: 0; font-size: 0.878rem; color: #8F8F8F;}
+/*Select*/
+
+/*input*/
+.THIS .MCS_input input {margin-top: 4px; height: 44px;}
+.THIS .MCS_input label {font-size: 0.75rem !important; font-weight: 600; position: relative;}
+.THIS .MCS_input label > abbr[title] {background: #E0205C; width: 4px; height: 4px; border-radius: 4px; position: absolute; top: 6px; right: 0px; color: transparent;}
+.THIS .priceWit { flex: 1;}
+.THIS .priceWit input {text-align: right; border: 0; color: #8F8F8F; height: 2.75rem; font-size: 0.875rem;}
+.THIS .inputWit input[disabled] {color: #8f8f8f;}
+.THIS .detail_input input {margin-top: 0;}
+.THIS .textalign_right input {text-align: right;}
+/*input*/
+
+/*textArea*/
+.THIS .textarea_com > label {position: relative;}
+.THIS .textarea_com textarea {margin: 4px 0 0 0; padding: 6px;}
+.THIS .detail_input textarea {margin-top: 0;}
+.THIS .detail_input_small .slds-grow {width: 130px;}
+/*textArea*/
+
+/*Grid Table*/
+.THIS .gridTable_Wrap {}
+/* .THIS .gridTable_Wrap p {font-size: 0.75rem; font-weight: 500; margin-bottom: 4px;} */
+.THIS .gridTable_Wrap table {border-top: 1px solid #C4C4C4; border-bottom: 1px solid #C4C4C4;}
+.THIS .gridTable_Wrap table thead {background: #f5f5f5;}
+.THIS .gridTable_Wrap table thead td, .THIS .gridTable_Wrap table tbody td {padding: 12px 6px; border-bottom: 1px solid #C4C4C4; text-align: center; word-break: break-all}
+.THIS .gridTable_Wrap table thead td + td, .THIS .gridTable_Wrap table tbody td + td {border-left: 1px solid #C4C4C4; font-size: 0.875rem;}
+.THIS .gridTable_Wrap table tbody td {color: #4f4f4f;}
+.THIS .rowSelect tbody tr.selected td {background-color: #FBE4E9;}
+
+/*contents*/
+.THIS .contentBox {padding: 12px 8px; border-bottom: 1px solid #D8D8D8; font-size: 0.875rem;}
+.THIS .detali_box {border-bottom: 1px solid #D8D8D8; font-size: 0.875rem;}
+.THIS .detail_label, .THIS .detail_data {display: table;}
+.THIS .detail_data.innerFlex {display: flex;}
+.THIS .detail_label {padding: 12px 0 12px 8px;}
+.THIS .detail_data {padding: 12px 8px;}
+.THIS .detail_label {font-weight: 500;}
+.THIS .detail_label > p, .THIS .detail_data > p { display: table-cell; vertical-align: middle;}
+.THIS .detail_multiRow + .detail_multiRow {margin-top: 24px;}
+.THIS .detail_multiRowInput + .detail_multiRowInput {margin-top: 8px;}
+.THIS .required {color: #E0205C;}
+
+/*CheckBox*/
+.THIS .checkBox_mcs {display: flex; justify-content: space-between; flex-wrap: wrap;}
+.THIS .checkBox_mcs .slds-form-element__label {color: #1f1f1f; font-size: 0.75rem; font-weight: 500;}
+/* .THIS .checkBox_mcs .slds-form-element__control{display: flex; justify-content: space-between; flex-wrap: wrap;} */
+.THIS .checkBox_mcs .slds-form-element__control .slds-form-element__label {color: #1f1f1f; font-size: 0.875rem; font-weight: 400;}
+.THIS .checkBox_mcs .slds-form-element__control .slds-checkbox {display: inline-block; min-width: 100px; padding: 8px 0;}
+.THIS .checkBox_mcs .slds-checkbox__label .slds-form-element__label { float: right !important; line-height: 0.875rem;}
+.THIS .checkBox_mcs .slds-checkbox_faux {width: 20px; height: 20px; border-radius: 4px;}
+.THIS .checkBox_mcs .slds-checkbox [type=checkbox]:checked+.slds-checkbox__label .slds-checkbox_faux:after {background: url('/resource/SVGImages/checkBox_selected.svg') no-repeat center; width: 20px; height: 20px; fill-opacity: 0; top: 0; left: 0; transform: rotate(0deg); border: 0;}
+.THIS .checkBox_mcs .slds-checkbox .slds-checkbox__label {display: flex;}
+.THIS .checkBox_mcs .slds-checkbox .slds-checkbox__label .slds-form-element__label {flex: 1;}
+
+/*Radio*/
+.THIS .radio_mcs {}
+.THIS .radio_mcs .slds-form-element__control {display: flex;}
+.THIS .radio_mcs .slds-form-element__control .slds-radio__label .slds-radio_faux {width: 20px; height: 20px;}
+.THIS .radio_mcs.align_right .slds-form-element__control {display: flex; justify-content: flex-end;}
+.THIS .radio_mcs .slds-radio [type=radio]:checked+.slds-radio__label .slds-radio_faux:after {background: url('/resource/SVGImages/radioBox_selected.svg') no-repeat center; width: 20px; height: 20px; fill-opacity: 0; top: -1px; left: -1px; transform: rotate(0deg); border: 0;}
+
+/* contnent */
+.THIS .itemTtl {font-size: 0.75rem; font-weight: 500; margin-bottom: 4px;}
+
+/* button wrap Bottom*/
+.THIS .btnWrap_bottom{z-index: 100; position: sticky; bottom: 0px; background: #fff; padding: 20px;}
+.THIS .bottom_btn_wrap {display: flex;}
+.THIS .bottom_btn_wrap button + button {margin-left: 8px;}
+.THIS .bottom_btn_wrap button:disabled {opacity: .3;}
+.THIS .bottomBtn {height: 52px; font-size: 1rem; font-weight: 600; border-radius: 4px; flex: 1;}
+.THIS .bottomWrapRever {flex-direction: row-reverse;}
+.THIS .bBtn_lineW {border: 1px solid #C4C4C4; background: #fff; color: #000;}
+.THIS .bBtn_fillPin {background: #E0205C; color: #fff; border: 0;}
+.THIS .bBtn_small {height: 34px; display: inline-block; padding: 8px 16px;}
+
+
+/* .THIS .MCS_input input {margin-top: 4px;}
+.THIS .MCS_input label {font-size: 0.75rem !important; font-weight: 600;}
+.THIS .MCS_input label > abbr[title] {background: #E0205C; width: 4px; height: 4px; border-radius: 4px; position: absolute; top: 6px; right: 0px; color: transparent;} */
+.THIS .container {display:none}
+.THIS .mcsToggle ul, .THIS .mcsToggle lightning-input {display: flex; justify-content: space-between;}
+.THIS .mcsToggle .slds-form-element__label {flex: 1; color: #4F4F4F; font-size: 0.875rem; font-weight: 400;}
+.THIS .mcsToggle .slds-checkbox_toggle [type=checkbox]:checked+.slds-checkbox_faux_container .slds-checkbox_faux {background: #E0205C; border: 1px solid #E0205C;}
+.THIS .mcsToggle .slds-checkbox_on, .THIS .mcsToggle .slds-checkbox_off {display: none !important;}
+
+.THIS .mcsToggle .fleAg {justify-content: flex-start !important;}
+.THIS .mcsToggle .fleAg li {padding-top: 8px;}
+.THIS .mcsToggle .fleAg li:nth-child(2) {padding-left: 8px;}
+.THIS .mcsToggle lightning-input {display: table-cell; vertical-align: middle;}
+
+/*:::전자서명 상세화면:::*/
+.THIS .esignTopWarp {background: #F5F5F5; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; padding: 12px; display: flex;}
+.THIS .esignTopWarp li {font-size: 0.875rem; font-weight: 500; color: #1f1f1f;}
+.THIS .esignTopWarp .alignMleft {margin-left: auto;}
+.THIS .fontCRed {color: #E0205C;}
+.THIS .esginHeaderWrap {margin: 32px 12px;}
+.THIS .esginHeaderWrap li + li {margin-top: 12px;}
+.THIS .esginHeaderWrap .headerTtl {font-size: 1.25rem; font-weight: 700; word-wrap: normal; word-break: keep-all; text-align: center;}
+.THIS .esginHeaderWrap .headerSubTtl {font-size: 0.8125rem; color: #4F4F4F; word-wrap: normal; word-break: keep-all; }
+.THIS .agreementWrap {margin: 0 24px 24px;}
+.THIS .agreementWrap .agmntTtl, .THIS .kidInfoAgrWrap .agmntTtl {font-size: 0.8125rem; color: #1f1f1f; margin-bottom: 12px; font-weight: 600;}
+.THIS .agreementWrap .agmntTable {font-size: 0.8125rem; color: #1f1f1f; margin-bottom: 16px;}
+.THIS .agreementWrap .agmntTable table {border-top: 1px solid #E8E8E8; border-bottom: 1px solid #E8E8E8;}
+.THIS .agreementWrap .agmntTable th, .THIS .agreementWrap .agmntTable td {padding: 6px 8px;}
+.THIS .agreementWrap .agmntTable th {background: #F5F5F5; color: #1f1f1f; font-weight: 700;}
+.THIS .agreementWrap .agmntTable tr + tr {border-top: 1px solid #E8E8E8;}
+.THIS .agreementWrap .agmntTable .textRed {color: #EA2228;}
+.THIS .agreementWrap .agmntContent {color: #4F4F4F; font-size: 0.8125rem; margin-bottom: 16px; word-wrap: normal; word-break: keep-all; }
+.THIS .agreementWrap .agmntBtnWrap, .THIS .kidInfoAgrWrap .agmntBtnWrap {padding: 14px; background: #F5F5F5; border-bottom: 1px solid #d8d8d8;}
+.THIS  .agmntBtnWrap .agmntCon, .THIS .kidInfoAgrWrap .agmntBtnWrap .agmntCon {color: #1f1f1f; font-size: 0.8125rem; margin-bottom: 14px; font-weight: 600;}
+.THIS .btnAgr {border: 1px solid #c4c4c4; color: #C4C4C4;}
+.THIS .btnAgr.select {border: 1px solid #E0205C; color: #E0205C;}
+.THIS .eSignDateWrap.mar24 {margin: 0 24px 24px 24px;}
+.THIS .eSignDateWrap li {font-size: 1rem; font-weight: 700; color: #1f1f1f; text-align: right;}
+.THIS .eSignDateWrap li + li {margin-top: 8px;}
+.THIS .kidInfoAgrWrap, .THIS .personalInfoWrap {border: 1px solid #E8E8E8; padding: 12px; margin: 12px 12px 24px 12px;}
+.THIS .personalInfoWrap .agmntTable {font-size: 0.8125rem; color: #1f1f1f; margin-bottom: 16px;}
+.THIS .personalInfoWrap .agmntTable table {border-top: 1px solid #E8E8E8; border-bottom: 1px solid #E8E8E8;}
+.THIS .personalInfoWrap .agmntTable th, .THIS .personalInfoWrap .agmntTable td {padding: 6px 8px;}
+.THIS .personalInfoWrap .agmntTable th {background: #F5F5F5; color: #1f1f1f; font-weight: 700;}
+.THIS .personalInfoWrap .agmntTable tr + tr {border-top: 1px solid #E8E8E8;}
+.THIS .personalInfoWrap .agmntTable .textRed {color: #EA2228;}
+.THIS .personalInfoWrap .agmntContent {color: #4F4F4F; font-size: 0.8125rem; margin-bottom: 16px; word-wrap: normal; word-break: keep-all; }
+.THIS .bankInforWrap {color: #4F4F4F; font-size: 0.75rem;}
+.THIS .bankInforWrap li + li {margin-top: 4px;}
+.THIS .bankInforWrap .marleft {margin-left: auto;}
+
+
+/*예,아니오 라디오 버튼*/
+.THIS .custom-radio_lb input[type="radio"] {
+  display: none;
+}
+
+.THIS .custom-radio_lb input[type="radio"] + span {
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  width:100%;
+  border: 1px solid #c4c4c4;
+  color: #c4c4c4;
+}
+.THIS .custom-radio_lb+.custom-radio_lb{
+  margin-left: var(--lwc-spacingXxSmall,0.25rem);
+}
+
+.THIS .custom-radio_lb input[type="radio"]:checked + span {
+  border: 1px solid #E0205C;
+  color: #E0205C;
+}
+
+.THIS .slds-tabs_default__content {
+    padding:0px;
+}
+
+.THIS .slds-tabs_default__nav{
+    background-color:#fff
+}

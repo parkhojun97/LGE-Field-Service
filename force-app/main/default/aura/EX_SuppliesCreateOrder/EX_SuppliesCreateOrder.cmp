@@ -1,0 +1,464 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2022/12/25.
+ -->
+
+<aura:component controller="EX_SuppliesController" description="EX_SuppliesCreateOrder" access="global">
+
+    <aura:import library="lightning:confirm" property="LightningConfirm"/>
+    <aura:attribute name="modalContent" type="Aura.Component"/>
+
+    <!-- Attribute   -->
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="objEmp" type="User"/>
+    <aura:attribute name="contactId" type="String" description="소모품 주문 고객"/>
+    <aura:attribute name="ContactDept" type="String" description="해당 고객 서비스 센터"/>
+
+    <aura:attribute name="ContactVIP" type="Decimal"  description="해당 고객 VIP 할인율"/>
+    <aura:attribute name="isEmployee" type="boolean" default="false" description="임직원 여부"/>
+    <aura:attribute name="discountType" type="String" default="0" description="할인 유형"/>
+    <aura:attribute name="serviceResource" type="String"  description="담당자 유형"/>
+
+    <aura:attribute name="consigneeName" type="String" description="수취인 이름"/>
+    <aura:attribute name="consigneeAddress" type="String" description="수취인 주소"/>
+
+    <aura:attribute name="IbCallNo" type="String" description="수취인 전화번호"/>
+    <aura:attribute name="newAddress" type="String"/>
+    <aura:attribute name="detailAddress" type="String"/>
+    <aura:attribute name="requestedTerm" type="String" description="요청 사항"/>
+    <aura:attribute name="remark" type="String" description="특이 사항"/>
+    <aura:attribute name="zoneCode" type="String" />
+    <aura:attribute name="managerNote" type="String" description="관리자 메모"/>
+    <aura:attribute name="isContactSame" type="Boolean" default="true" description="주문 고객과 수취인 동일 여부"/>
+
+    <aura:attribute name="isPaymentMode" type="Boolean" description="결제 모드 Y/N" default="false"/>
+    <aura:attribute name="IsOrderCreation" type="Boolean" description="주문 생성 가능 여부" default="false"/>
+
+    <aura:attribute name="IsBeforePaymentYN" type="Boolean" description="선 결제 여부" default="false"/>
+    <aura:attribute name="IsPrint" type="Boolean" description="견적서/명세서 출력여부" default="false"/>
+    <aura:attribute name="IsBefore" type="Boolean" description="결제시 출력 " default="false"/>
+
+    <aura:attribute name="paymentMethodGroup" type="List" default="[{'label': '현금 결제', 'value': 'Cash'},
+                                                                           {'label': '카드 결제', 'value': 'Card'},
+                                                                           {'label': '포인트 결제', 'value': 'Point'}]"/>
+
+    <aura:attribute name="selectedPaymentMethod" type="String" description=""/>
+    <aura:attribute name="selectedPaymentAmount" type="Decimal" description=""/>
+
+    <aura:attribute name="stdOrderTotalSalesCount" type="Integer" default="0" description="일반 주문 총 판매 수량"/>
+    <aura:attribute name="stdOrderTotalSalesAmount" type="currency" default="0" description="일반 주문 총 판매 금액"/>
+    <aura:attribute name="stdOrderTotalDiscountAmount" type="currency" default="0" description="일반 주문 총 할인 금액"/>
+    <aura:attribute name="stdOrderTotalPaymentAmount" type="currency" default="0" description="일반 주문 총 결제 금액"/>
+
+    <aura:attribute name="stdOrderTotalPointAmount" type="currency" default="0" description="일반 주문 총 포인트 금액"/>
+    <aura:attribute name="stdOrderTotalCashAmount" type="currency" default="0" description="일반 주문 총 현금 금액"/>
+    <aura:attribute name="stdOrderTotalCardAmount" type="currency" default="0" description="일반 주문 총 카드 금액"/>
+
+    <aura:attribute name="soldOutOrderTotalSalesCount" type="Integer" default="0" description="품절 주문 총 판매 수량"/>
+    <aura:attribute name="soldOutOrderTotalSalesAmount" type="currency" default="0" description="품절 주문 총 판매 금액"/>
+    <aura:attribute name="soldOutOrderTotalDiscountAmount" type="currency" default="0" description="품절 주문 총 할인 금액"/>
+    <aura:attribute name="soldOutOrderTotalPaymentAmount" type="currency" default="0" description="품절 주문 총 결제 금액"/>
+
+    <aura:attribute name="soldOutOrderTotalPointAmount" type="currency" default="0" description="품절 주문 포인트 금액"/>
+    <aura:attribute name="soldOutOrderTotalCashAmount" type="currency" default="0" description="품절 주문 총 현금 금액"/>
+    <aura:attribute name="soldOutOrderTotalCardAmount" type="currency" default="0" description="품절 주문 총 카드 금액"/>
+
+    <aura:attribute name="OrderTotalSalesAmount" type="currency" default="0" description="주문 총 판매 금액"/>
+
+    <aura:attribute name="OrderTotalPaymentAmount" type="currency" default="0" description="주문 총 결제 금액"/>
+    <aura:attribute name="OrderTotalDiscountAmount" type="currency" default="0" description="주문 총 할인 금액"/>
+
+
+    <aura:attribute name="columns" type="List" default="[]"/>
+
+    <aura:attribute name="standardOrderData" type="List"  default="[]"/>
+
+    <aura:attribute name="soldOutOrderData" type="List" default="[]"/>
+
+    <aura:attribute name="isRePay" type="Boolean" default="false" />
+
+
+    <aura:attribute name="stdConsumableOrderId" type="String" default=""/>
+    <aura:attribute name="stdConsumableOrder" type="ProductRequest" default=""/>
+
+    <aura:attribute name="soldOutConsumableOrderId" type="String" default=""/>
+    <aura:attribute name="soldOutConsumableOrder" type="ProductRequest" default=""/>
+
+    <aura:attribute name="poId" type="String" default=""/>
+    <aura:attribute name="strCaseId" type="String" />
+
+    <aura:attribute name="showSpinner" type="Boolean" default="false" />
+
+    <aura:attribute name="Point" type="currency" default="0"/>
+    <aura:attribute name="Card" type="currency" default="0"/>
+    <aura:attribute name="Cash" type="currency" default="0"/>
+
+    <aura:attribute name="CashDeposit" type="currency" default="0"/>
+    <aura:attribute name="UrlPayment" type="currency" default="0"/>
+
+    <aura:attribute name="latePayment" type="Boolean" default="false"/>
+    <aura:attribute name="isCancelPayment" type="Boolean" default="false" description="결제 취소여부 취소시 현재 모달도 닫힘"/>
+
+    <aura:attribute name="body" type="Aura.Component[]" default=""/>
+    <aura:attribute name="footer" type="Aura.Component[]" default=""/>
+
+    <aura:attribute name="isWide" type="Boolean" description="모달 크기 대형" default="true"/>
+    <aura:attribute name="isXSmall" type="Boolean" description="모달 크기 초소형" default="false"/> <!-- 24 01 02 PHJ -->
+    <aura:attribute name="isPointPayment" type="Boolean" default="false" description="최초 결제시 포인트 선결제 후 카드/현금 결제 진행"/>
+
+
+    <aura:attribute name="chkEmployeeName" type="String" />
+    <aura:attribute name="chkEmployeeNum" type="String" />
+    <aura:attribute name="chkCompanyName" type="String" />
+    <aura:attribute name="chkEmployeeRelationShip" type="String" />
+
+    <aura:attribute name="prId" type="Id" description="주문 내역 시작시 생성되는 ProductRequest ID" default=""/>
+    <aura:attribute name="prOrderNumber" type="String" description="주문 내역 시작시 생성되는 ProductRequest OrderNumber"/>
+    <aura:attribute name="prSoldOutOrderNumber" type="String" description="주문 내역 시작시 생성되는 ProductRequest OrderNumber"/>
+
+    <aura:attribute name="simpleRecord" type="Object"/>
+    <aura:attribute name="recordError" type="String"/>
+    <aura:attribute name="isManagement" type="Boolean" default="false"/>
+    <aura:attribute name="isOpen"           type="Boolean"         description="Dialog 상태"      />
+
+    <aura:attribute name="vipDiscountAmount" type="currency" default="0" description="vip 총 할인 금액"/>
+    <aura:attribute name="empDiscountAmount" type="currency" default="0" description="임직원 총 할인 금액"/>
+    <aura:attribute name="promotionDiscountAmount" type="currency" default="0" description="프로모션 총 할인 금액"/>
+
+    <aura:attribute name="isOrderChange" type="Boolean" default="false" description="일반주문 품절로 변환 여부"/>
+
+    <lightning:workspaceAPI      aura:id="workspace" />
+    <!-- 23.05.01 자재포탈 인입 여부 추가 -->
+    <aura:attribute name="FSIsMaterialPortal" type="Boolean" default="false" description="자재 포탈에서 넘어온 자재포탈 인입 여부"/>
+    <aura:attribute name="focusedTabId" type="String" default="" description=""/>
+
+    <aura:handler name="change" value="{!v.standardOrderData}" action="{!c.fnStdWijmo}"/>
+    <aura:handler name="change" value="{!v.soldOutOrderData}" action="{!c.fnSoldWijmo}"/>
+
+    <aura:handler name="change" value="{!v.isOpen}" action="{!c.fnDialogCancel}"/>
+
+    <!--    <aura:handler name="EX_PaymentCancelEvent_evt" event="c:EX_PaymentCancelEvent_evt" action="{!c.fnCancel}" />-->
+    <aura:handler event="c:EX_PaymentModalCancelEvt_evt" action="{!c.fnCancel2}" /> <!-- 24 01 02 PHJ -->
+    <aura:handler name="EX_PaymentCompleteEvent_evt" event="c:EX_PaymentCompleteEvent_evt" action="{!c.applyPayment}" />
+    <aura:handler name="EX_DiscountEvent_evt" event="c:EX_DiscountEvent_evt" action="{!c.changeOrderData}"/>
+    
+    <aura:registerEvent name="EX_CompleteEvent_evt" type="c:EX_CompleteEvent_evt"/>
+
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    <c:EX_MessageBox aura:id="dialog"/>
+
+    <lightning:button onclick="{! c.handleShowActiveSectionName }" label="접힌 고객 정보"/>
+
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+             aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open" style="height:80%; width:90%; margin-left:6%; margin-top:3%; z-index:102">
+        <div style="height:90%">
+            <aura:if isTrue="{!v.showSpinner}" >
+                <lightning:spinner variant="brand" size="medium"/>
+            </aura:if>
+        <c:EX_ComponentTemplate height="300" body="{!v.body}" footer="{!v.footer}" isWide="{!v.isWide}" isMiddle="{!v.isMiddle}" isSmall="{!v.isSmall}" isXSmall="{!v.isXSmall}" title="소모품 주문 내역" hasSelfFooter="true">
+                <aura:set attribute="body">
+                    <lightning:layout multipleRows="true" class="con">
+                        <lightning:layoutItem size="12" class="container noflex">
+                            <!--고객정보 Start-->
+                            <div class="slds-col slds-size_12-of-12">
+                                <aura:if isTrue="{!v.isManagement == false}">
+                                    <lightning:accordion
+                                            allowMultipleSectionsOpen="true"
+                                            onsectiontoggle="{! c.handleSectionToggle }"
+                                            activeSectionName="[]"
+                                            class="topAcco"
+                                    >
+                                        <lightning:accordionSection name="A" label="고객정보">
+                                            <div class="slds-col slds-size_6-of-12 detailInfoWrap pr_24 pl_12">
+                                                <!--결제자 Start-->
+                                                <ul class="detailDataInner">
+                                                    <li>결제자</li>
+                                                    <li>
+                                                        <div class="wrapFlex">
+                                                            <lightning:input name="custNm" label="고객명" value="{! v.objCont.Name}" class="" readonly="true"/>
+                                                            <lightning:input name="custPhone" label="전화번호" value="{! v.objCont.MobilePhone != null ? v.objCont.MobilePhone : v.objCont.Phone}" class="" readonly="true"/>
+                                                        </div>
+                                                        <div>
+                                                            <lightning:input name="custAddress" label="고객주소" value="{!empty(v.objCont.fm_ADDRESS_NEW__c) ? v.objCont.fm_ADDRESS_OLD__c : v.objCont.fm_ADDRESS_NEW__c}"  readonly="true"/>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                                <!--결제자 End-->
+                                                <!--상담이력 Start-->
+                                                <div class="textField">
+                                                    <lightning:textarea value="{!v.remark}" class=" slds-p-left_x-small" readonly="true"/>
+                                                </div>
+                                                <!--상담이력 End-->
+                                            </div>
+                                            <div class="slds-col slds-size_6-of-12 detailInfoWrap pl_24 pr_12">
+                                                <!--받는분 Start-->
+                                                <ul class="detailDataInner">
+                                                    <li>받는분</li>
+                                                    <li>
+                                                        <div class="wrapFlex">
+                                                            <lightning:input name="custNm" label="수취인명" value="{! v.isContactSame == true ? v.objCont.Name : v.consigneeName}" class="" readonly="true" />
+                                                            <lightning:input name="custPhone" label="수취인 전화번호" value="{! v.isContactSame == true ? (v.objCont.MobilePhone != null ? v.objCont.MobilePhone : v.objCont.Phone) : v.IbCallNo}" class="" readonly="true"/>
+                                                        </div>
+                                                        <div>
+                                                            <lightning:input name="custAddress" label="수취인 주소" value="{! v.isContactSame == true ? empty(v.objCont.fm_ADDRESS_NEW__c) ? v.objCont.fm_ADDRESS_OLD__c : v.objCont.fm_ADDRESS_NEW__c : (v.newAddress + ' ' + v.detailAddress) }" readonly="true"/>
+                                                            <!--  <lightning:input name="custAddress" label="수취인 상세주소" value="{! v.detailAddress}" class="inputTaLabelPosLeft slds-p-left_x-small" readonly="true"/>-->
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                                <!--받는분 End-->
+                                                <!--배송 메시지 Start-->
+                                                <div class="textField">
+                                                    <lightning:textarea value="{!v.requestedTerm}" class=" slds-p-left_x-small" readonly="true" />
+                                                </div>
+                                                <!--배송 메시지 End-->
+                                            </div>
+                                            <!-- 관리자메모 Start-->
+                                            <div class="textField">
+                                                <lightning:textarea value="{!v.managerNote}" class=" slds-p-left_x-small" readonly="true"/>
+                                            </div>
+                                            <!--관리자메모 End-->
+                                        </lightning:accordionSection>
+                                    </lightning:accordion>
+                                </aura:if>
+                            </div>
+                            <!--고객정보 End-->
+                            <div class="slds-col slds-size_12-of-12 wrapFlex deliveryWrap">
+                                <!--주문정보 Start-->
+                                <div class="slds-col slds-size_6-of-12">
+                                    <ul class="orderWrap" style="height:580px">
+                                        <li class="orderTtl">
+                                            주문정보
+                                        </li>
+                                        <!--주문 dataTableBox 시작-->
+                                        <li class="detailBoxWrap" style="height:40%;">
+                                        <!-- <li class="detailBoxWrap" style="height:50%; overflow:auto"> -->
+                                            <p class="detailBoxTtl">
+                                                품절주문
+                                            <aura:if isTrue="{!and(v.soldOutOrderData.length > 0, v.isOrderChange) }">
+                                                <div style="display:inline-block">
+                                                    <lightning:badge label="가용수량이 부족하여 품절주문으로 생성합니다." iconName="utility:warning" class="slds-theme_warning"/>
+                                                </div>
+                                            </aura:if>
+                                            </p>
+
+                                            <div style="height:150px">
+<!--                                                <lightning:datatable-->
+<!--                                                        aura:id="orderListDt"-->
+<!--                                                        columns="{!v.columns}"-->
+<!--                                                        data="{!v.soldOutOrderData}"-->
+<!--                                                        keyField="sProductItemId"-->
+<!--                                                        suppressBottomBar="true"-->
+<!--                                                        hideCheckboxColumn="true"-->
+<!--                                                />-->
+                                                <c:EXWijmo aura:id="wijmo_EXSuppliesCreateOrder_sold"  onmessage="{!c.onWijmoMessage}"
+                                                           stub="{! 'EXSuppliesCreateOrderSold'}" css="{! 'EXWijmoReconciled'}"/>
+                                            </div>
+                                            <div style="display:flex; flex-direction: row; flex-wrap: wrap; align-items: center">
+                                                <p style="padding-right:5px" class="detailBoxBottom">(총 {!v.soldOutOrderTotalSalesCount}건) 판매금액  <lightning:formattedNumber value="{!v.soldOutOrderTotalSalesAmount}" style="currency" maximumFractionDigits="2"/></p>
+                                                <p style="padding-right:5px" class="detailBoxBottom">할인금액 <lightning:formattedNumber value="{!v.soldOutOrderTotalDiscountAmount}" style="currency" maximumFractionDigits="2"/></p>
+                                                <p class="detailBoxBottom">결제금액 <lightning:formattedNumber value="{!v.soldOutOrderTotalPaymentAmount}" style="currency" maximumFractionDigits="2"/></p>
+                                                <aura:if isTrue="{!not(v.soldOutOrderTotalSalesCount ==0)}">
+                                                    <aura:if isTrue="{!v.isManagement == false}">
+                                                    <!--23 09 22 hyungho.chun 품절주문+일반주문 다있을때만 보이게 수정-->
+                                                    <aura:if isTrue="{!and(v.isManagement == false,v.stdOrderTotalSalesCount !=0)}">
+                                                        <p style="display:flex; margin-left: auto;">
+                                                            <!--                                            <lightning:input type="checkbox" label="품절주문 선결제 여부" checked="{!v.IsBeforePaymentYN}" onchange="{!c.fnLatePayment}" disabled="true" ></lightning:input>-->
+                                                            <lightning:input type="checkbox" label="견적서 포함" checked="{!v.IsPrint}"  disabled="{!v.IsBefore}"></lightning:input>
+                                                        </p>
+                                                    </aura:if>
+                                                    </aura:if>
+                                                </aura:if>
+                                            </div>
+
+                                        </li>
+                                        <!--주문 dataTableBox 끝-->
+                                        <!--주문 dataTableBox 시작-->
+                                        <li class="detailBoxWrap" style="height:50%;">
+                                        <!-- <li class="detailBoxWrap" style="height:50%; overflow:auto"> -->
+                                            <p class="detailBoxTtl">일반주문</p>
+                                            <div style="height:190px">
+<!--                                                <lightning:datatable-->
+<!--                                                        aura:id="orderListDt"-->
+<!--                                                        columns="{!v.columns}"-->
+<!--                                                        data="{!v.standardOrderData}"-->
+<!--                                                        keyField="sProductItemId"-->
+<!--                                                        maxRowSelection="1"-->
+<!--                                                        suppressBottomBar="true"-->
+<!--                                                        hideCheckboxColumn="true"-->
+<!--                                                />-->
+                                                <c:EXWijmo aura:id="wijmo_EXSuppliesCreateOrder_std"  onmessage="{!c.onWijmoMessage}"
+                                                           stub="{! 'EXSuppliesCreateOrder'}" css="{! 'EXWijmoReconciled'}"/>
+                                            </div>
+                                            &nbsp;&nbsp;                                  <div style="display:flex">
+                                                <aura:if isTrue="{!and(v.isManagement, v.soldOutOrderData.length != 0)}" >
+                                                    <p style="padding-right:5px" class="detailBoxBottom">(총 0건) 판매금액 <lightning:formattedNumber value="0" style="currency" maximumFractionDigits="2"/></p>
+                                                    <p style="padding-right:5px" class="detailBoxBottom">할인금액 <lightning:formattedNumber value="0" style="currency" maximumFractionDigits="2"/></p>
+                                                    <p class="detailBoxBottom">결제금액 <lightning:formattedNumber value="0" style="currency" maximumFractionDigits="2"/></p>
+                                                    <aura:set attribute="else">
+                                                        <p style="padding-right:5px" class="detailBoxBottom">(총 {!v.stdOrderTotalSalesCount}건) 판매금액 <lightning:formattedNumber value="{!v.stdOrderTotalSalesAmount}" style="currency" maximumFractionDigits="2"/></p>
+                                                        <p style="padding-right:5px" class="detailBoxBottom">할인금액 <lightning:formattedNumber value="{!v.stdOrderTotalDiscountAmount}" style="currency" maximumFractionDigits="2"/></p>
+                                                        <p class="detailBoxBottom">결제금액 <lightning:formattedNumber value="{!v.stdOrderTotalPaymentAmount}" style="currency" maximumFractionDigits="2"/></p>
+                                                    </aura:set>
+                                                </aura:if>
+                                            </div>
+                                        </li>
+                                        <!--주문 dataTableBox 끝-->
+                                    </ul>
+
+                                </div>
+                                <!--주문정보 End-->
+                                <!--결제정보 Start-->
+                                <div class="slds-col slds-size_6-of-12">
+                                    <ul class="orderWrap" style="height:592px">
+                                        <li class="orderTtl">
+                                            결제정보
+                                        </li>
+                                        <li class="detailBoxWrap" style="height:100%; overflow:auto">
+
+                                            <c:EX_SuppliesOrderInfo aura:id="EX_SuppliesOrderInfo"
+                                                                    standardOrderData="{!v.standardOrderData}"
+                                                                    soldOutOrderData="{!v.soldOutOrderData}"
+                                                                    contactId="{!v.contactId}"
+                                                                    OrderTotalPaymentAmount="{!v.OrderTotalPaymentAmount}"
+                                                                    OrderTotalDiscountAmount="{!v.OrderTotalDiscountAmount}"
+                                                                    Cash="{!v.Cash}"
+                                                                    Card="{!v.Card}"
+                                                                    Point="{!v.Point}"
+                                                                    CashDeposit="{!v.CashDeposit}"
+                                                                    UrlPayment="{!v.UrlPayment}"
+                                                                    latePayment="{!v.latePayment}"
+                                                                    IsPrint ="{!v.IsPrint}"
+                                                                    objCont="{!v.objCont}"
+                                                                    stdConsumableOrderId ="{!v.stdConsumableOrderId}"
+                                                                    soldOutConsumableOrderId="{!v.soldOutConsumableOrderId}"
+                                                                    isPointPayment="{!v.isPointPayment}"
+                                                                    isEmployee="{!v.isEmployee}"
+                                                                    ContactVIP="{!v.ContactVIP}"
+                                                                    chkEmployeeName = "{!v.chkEmployeeName}"
+                                                                    chkEmployeeNum = "{!v.chkEmployeeNum}"
+                                                                    chkCompanyName = "{!v.chkCompanyName}"
+                                                                    chkEmployeeRelationShip = "{!v.chkEmployeeRelationShip}"
+                                                                    discountType = "{!v.discountType}"
+                                                                    stdOrderTotalDiscountAmount = "{!v.stdOrderTotalDiscountAmount}"
+                                                                    soldOutOrderTotalDiscountAmount = "{!v.soldOutOrderTotalDiscountAmount}"
+                                                                    stdOrderTotalPaymentAmount ="{!v.stdOrderTotalPaymentAmount}"
+                                                                    soldOutOrderTotalPaymentAmount ="{!v.soldOutOrderTotalPaymentAmount}"
+                                                                    prOrderNumber ="{!v.prOrderNumber}"
+                                                                    isManagement ="{!v.isManagement}"
+                                                                    vipDiscountAmount ="{!v.vipDiscountAmount}"
+                                                                    empDiscountAmount ="{!v.empDiscountAmount}"
+                                                                    promotionDiscountAmount ="{!v.promotionDiscountAmount}"
+                                                                    remark="{!v.remark}"
+
+                                            />
+                                            <aura:if isTrue="{!v.isPaymentMode}">
+                                                <div class="slds-m-top_medium">
+
+                                                </div>
+                                                <lightning:layout multipleRows="false">
+
+                                                    <lightning:layoutItem size="12">
+                                                        <lightning:card class="slds-card_boundary slds-m-top_x-small" title='결제 임시 모듈'>
+                                                            <aura:set attribute="actions">
+                                                                <lightning:buttonGroup>
+                                                                    <lightning:button variant="neutral" label="결제"
+                                                                                      onclick="{!c.applyPayment}"/>
+                                                                </lightning:buttonGroup>
+                                                            </aura:set>
+
+                                                            <lightning:layout multipleRows="false">
+
+                                                                <lightning:layoutItem size="6">
+                                                                    <lightning:radioGroup
+                                                                            class="slds-text-align_left slds-m-left_x-small"
+                                                                            name="paymentMethod"
+                                                                            aura:id="paymentMethod"
+                                                                            options="{! v.paymentMethodGroup }"
+                                                                            value="{! v.selectedPaymentMethod }"
+                                                                            type="radio"
+                                                                            onchange="{!c.changePaymentMethod}"/>
+
+                                                                </lightning:layoutItem>
+                                                                <lightning:layoutItem size="6">
+                                                                    <div class="slds-size_6-of-8">
+                                                                        <aura:if isTrue="{!v.selectedPaymentMethod == 'Cash'}">
+                                                                            <lightning:input type="number" label="현금 결제 금액"
+                                                                                             value="{!v.selectedPaymentAmount}"
+                                                                                             class="inputTaLabelPosLeft"/>
+                                                                        </aura:if>
+                                                                        <aura:if isTrue="{!v.selectedPaymentMethod == 'Card'}">
+                                                                            <lightning:input type="number" label="카드 결제 금액"
+                                                                                             value="{!v.selectedPaymentAmount}"
+                                                                                             class="inputTaLabelPosLeft"/>
+                                                                        </aura:if>
+                                                                        <aura:if isTrue="{!v.selectedPaymentMethod == 'Point'}">
+                                                                            <lightning:input type="number" label="포인트 결제 금액"
+                                                                                             value="{!v.selectedPaymentAmount}"
+                                                                                             class="inputTaLabelPosLeft"/>
+                                                                        </aura:if>
+                                                                    </div>
+                                                                </lightning:layoutItem>
+                                                            </lightning:layout>
+                                                        </lightning:card>
+
+                                                    </lightning:layoutItem>
+
+                                                </lightning:layout>
+                                            </aura:if>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!--결제정보 End-->
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:set>
+                <aura:set attribute="footer">
+                    <div style="text-align: right;">
+                        <aura:if isTrue="{!v.isManagement == false}">
+                            <lightning:button variant="neutral" label="견적서" onclick="{!c.fnQuote}" disabled="{!v.showSpinner}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!v.isManagement == true}">
+                            <lightning:button variant="neutral" label="견적서/명세서" onclick="{!c.fnQuote}" disabled="{!v.showSpinner}"/>
+                        </aura:if>
+                        <aura:if isTrue="{!and((v.soldOutOrderData.length > 0),(v.standardOrderData.length == 0)) }">
+                            <lightning:button variant="brand" label="품절 주문 예약" onclick="{!c.fnSave}" disabled="{!v.showSpinner}"/>
+                            <!-- <lightning:button variant="neutral" label="닫기" onclick="{!c.dmlBeforeResend}" disabled="{!v.showSpinner}"/> -->
+                            <lightning:button variant="neutral" label="주문 취소" onclick="{!c.dmlBeforeResend}" disabled="{!v.showSpinner}"/>
+
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!v.stdOrderTotalPaymentAmount == 0 }">
+                                    <lightning:button variant="brand" label="소모품 주문" onclick="{!c.fnSaveFullDiscount}" disabled="{!v.showSpinner}"/>
+                                    <lightning:button variant="neutral" label="닫기" onclick="{!c.dmlBeforeResend}" disabled="{!v.showSpinner}"/>
+                                    <aura:set attribute="else">
+                                        <lightning:button variant="neutral" label="결제 진행" onclick="{!c.fnPayment}" disabled="{!v.showSpinner}"/>
+                                            <!-- <lightning:button variant="neutral" label="닫기" onclick="{!c.dmlBeforeResend}" disabled="{!v.showSpinner}"/> -->
+                                            <lightning:button variant="neutral" label="주문 취소" onclick="{!c.dmlBeforeResend}" disabled="{!v.showSpinner}"/>
+                                    </aura:set>
+
+
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.IsOrderCreation}" >
+                            <!--                            <aura:if isTrue="{!v.standardOrderData!=null}" >-->
+
+                            <!--                                <lightning:button variant="brand" label="재결제" onclick="{!c.fnRePayment}"/>-->
+                            <!--                            </aura:if>-->
+                            <!--                            <lightning:button variant="brand" label="주문 예약" onclick="{!c.fnSave}" disabled="{!v.showSpinner}"/>-->
+                        </aura:if>
+
+
+
+                    </div>
+                </aura:set>
+            </c:EX_ComponentTemplate>
+        </div>
+
+    </section>
+
+
+    <div class="slds-backdrop slds-backdrop_open custom_backdrop" style="z-index:100"></div>
+    {!v.modalContent}
+
+</aura:component>

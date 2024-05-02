@@ -1,0 +1,57 @@
+/**
+ * Created by I2MAX.SEOKHOLEE on 2023-02-24.
+ */
+.THIS .bgWhite {
+    background-color:white !important;
+}
+
+.THIS .mt_12 {margin-top: 12px;}
+.THIS .mb_12 {margin-bottom: 12px;}
+
+.THIS .gridWrap {padding: 12px 16px;}
+.THIS .gridWrap .gridHeaderWrap {display: flex; margin-bottom: 8px;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap button {color: #1f1f1f; height: 26px;}
+.THIS .gridWrap .gridMaster {border-bottom: 1px solid #D8D8D8;}
+.THIS .gridWrap .gridMaster .slds-table_header-fixed_container {background: #fff;}
+.THIS .gridMasterBtnWrap {display: flex; margin-top: 8px; justify-content: flex-end;}
+
+/* .THIS .gridWrap .gridMasterBtnWrap .btnSave {margin-left: auto;} */
+.THIS .gridWrap .gridSlave {background: #f5f5f5;}
+.THIS .gridWrap .gridSlave .gridSlaveInner {border-bottom: 1px solid #D8D8D8;}
+.THIS .gridWrap .gridSlave .slds-is-open>.slds-accordion__summary .slds-accordion__summary-action-icon {transform: rotate(180deg);}
+.THIS .gridWrap .gridSlave .slds-accordion__summary-action-icon {transform: rotate(0deg);}
+
+/* .THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon svg {transform: rotate(0deg);} */
+.THIS .gridWrap .gridSlave .gridSlaveBtn {color: #1f1f1f; height: 26px;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-table_header-fixed_container {background: transparent;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-table_header-fixed thead th {background: #D8D8D8;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-cell-fixed {background: #D8D8D8;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:hover,
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary .slds-accordion__summary-action:focus
+{color: #1f1f1f; text-decoration: none;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon {order: 2;}
+.THIS .gridWrap .gridSlave .gridSlaveTable .slds-accordion__summary button lightning-primitive-icon svg {margin: 0 0 0 8px;}
+.THIS .cBox {border: 1px solid #D8D8D8; box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.08); border-radius: 6px; }
+.THIS .bgWhite {background: #fff;}
+.THIS .gridWrap .gridHeaderWrap {display: flex; margin-bottom: 8px;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderTtl {color: #1f1f1f; font-size: 1rem; font-weight: 600;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap {margin-left: auto; display: flex;}
+.THIS .gridWrap .gridHeaderWrap .gridHeaderBtnWrap button {color: #1f1f1f; height: 26px;}
+.THIS .gridWrap .gridMasterBtnWrap {display: flex; margin-top: 8px; justify-content: flex-end;}
+.THIS .btnOpt {background: #383838; color: #fff; border: 1px solid #383838;}
+
+/* 셀 컬럼 색상 */
+.THIS .bg_color_delivery {
+    background-color: #ededed;
+}
+.THIS .bg_color_cancel {
+    background-color: #fce4d6;
+}
+.THIS .bg_color_return {
+    background-color: #e2efda;
+}
+.THIS .bg_color_exchange {
+    background-color: #d9e1f2;
+}

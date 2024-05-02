@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-02-28.
+ -->
+
+<aura:event type="APPLICATION" description="EX_PaymentCompleteEvent_evt">
+    <aura:attribute name="complete" type="boolean" default="false" description="결제 완료"/>
+</aura:event>

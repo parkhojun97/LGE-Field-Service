@@ -1,0 +1,61 @@
+<!--
+ - Created by A78916 on 2023-06-02.
+ -->
+
+ <aura:component description="EX_PaymentCardNFC">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}"/>
+    <lightning:empApi aura:id="empApi"/>
+  
+    <!-- 완료하면 type=complete, 취소는 close -->
+    <aura:registerEvent name="onClose" type="c:FN_PaymentEvent"/>
+  
+    <!-- Holds the streaming event subscription -->
+    <aura:attribute name="subscription" type="Map" />
+  
+    <aura:attribute name="attr" type="Map" default="" description="NFC 생성을 위한 Object"/>
+    <aura:attribute name="uuid" type="String" default="" description="Platform event 수신 시 구분 값"/>
+    <aura:attribute name="area" type="String" default="" description="슬롯 번호"/>
+    <aura:attribute name="json" type="String" default="" description="NFC 생성을 위한 JSON"/>
+    
+    <div class="slds-modal__container slds-align_absolute-center" style="margin-top: 15%;">
+    <!-- Header -->
+    <div class="slds-modal__container slds-align_absolute-center" style="width: 30% !important;">
+        <header class="slds-modal__header" style="width: 100%;">
+            <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">모바일 NFC 결제</h2>
+        </header> 
+      <div class="container slds-color__background_gray-1 slds-p-around_medium " style="display:block; height:500px;">
+        <!-- <div class="slds-m-around_medium">
+          <p style="font-size:22px;">모바일 NFC 결제</p>
+          <hr style="margin-top:0px;margin-bottom:0px;"/>
+        </div> -->
+        <div class="slds-grid slds-p-around_medium slds-grid_align-center">
+          <aura:if isTrue="{! not(empty(v.json))}">
+            <!--suppress HtmlUnknownTarget -->
+            <iframe aura:id="qr" title="QR Code" src="{! join('', '/apex/FNQR?q=', v.json, '&amp;s=', 240)}"
+                    style="border: none; width: 240px; height: 245px;"></iframe>
+          </aura:if>
+        </div>
+        <div class="slds-grid slds-p-around_medium slds-grid_align-center">
+          <p style="font-size:18px;">스마트폰에서 QR코드를 스캔해 주세요.</p>
+        </div>
+        <!-- <footer class="slds-grid slds-modal__footer">
+          <div class="slds-size_1-of-4 nfc-spinner">
+            <lightning:spinner variant="brand" alternativeText="Loading" size="small"/>
+          </div>
+          <div class="slds-col_bump-left">
+            <lightning:button label="취소" onclick="{!c.handleClose}" class="bottomBtn"/>
+          </div>
+        </footer> -->
+  
+      </div>
+      <footer class="slds-grid slds-modal__footer" style="width: 100%;">
+        <div class="slds-size_1-of-4 nfc-spinner">
+          <lightning:spinner variant="brand" alternativeText="Loading" size="small"/>
+        </div>
+        <div class="slds-col_bump-left">
+          <lightning:button label="취소" onclick="{!c.handleClose}" class="bottomBtn"/>
+        </div>
+      </footer>
+    </div>
+    </div>
+  </aura:component>

@@ -1,0 +1,5 @@
+<aura:event type="APPLICATION" description="EX_ExMessageSend_evt">
+    <aura:attribute name="emId" type="String" description="알림톡 ID"/>
+    <aura:attribute name="emType" type="String" description="유형"/>
+    <aura:attribute name="receiverNumber" type="String" description="휴대폰 번호"/>
+</aura:event>

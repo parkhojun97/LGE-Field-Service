@@ -1,0 +1,345 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2022/12/25.
+ -->
+
+ <aura:component controller="EX_SuppliesController"
+ implements="force:lightningQuickActionWithoutHeader,force:hasRecordId"
+ description="EX_SuppliesOrderInfo">
+
+<aura:import library="lightning:confirm" property="LightningConfirm"/>
+<aura:attribute name="modalContent" type="Aura.Component"/>
+
+<!-- Attribute   -->
+<aura:attribute name="contactId" type="String"/>
+<aura:attribute name="objCont" type="Contact"/>
+
+<aura:attribute name="data" type="List" default="[]"/>
+
+<aura:attribute name="PaymentMethod" type="String" description=""/>
+<aura:attribute name="PaymentAmount" type="Decimal" description=""/>
+
+<aura:attribute name="stdOrderTotalSalesCount" type="Integer" default="0" description="일반 주문 총 판매 수량"/>
+<aura:attribute name="stdOrderTotalSalesAmount" type="currency" default="0" description="일반 주문 총 판매 금액"/>
+<aura:attribute name="stdOrderTotalDiscountAmount" type="currency" default="0" description="일반 주문 총 할인 금액"/>
+<aura:attribute name="stdOrderTotalPointAmount" type="currency" default="0" description="일반 주문 총 포인트 금액"/>
+<aura:attribute name="stdOrderTotalPaymentAmount" type="currency" default="0" description="일반 주문 총 결제 금액"/>
+
+<aura:attribute name="soldOutOrderTotalSalesCount" type="Integer" default="0" description="품절 주문 총 판매 수량"/>
+<aura:attribute name="soldOutOrderTotalSalesAmount" type="currency" default="0" description="품절 주문 총 판매 금액"/>
+<aura:attribute name="soldOutOrderTotalDiscountAmount" type="currency" default="0" description="품절 주문 총 할인 금액"/>
+<aura:attribute name="soldOutOrderTotalPointAmount" type="currency" default="0" description="품절 주문 포인트 금액"/>
+<aura:attribute name="soldOutOrderTotalPaymentAmount" type="currency" default="0" description="품절 주문 총 결제 금액"/>
+
+<aura:attribute name="OrderTotalSalesAmount" type="currency" default="0" description="주문 총 판매 금액"/>
+<aura:attribute name="OrderTotalDiscountAmount" type="currency" default="0" description="주문 총 할인 금액"/>
+<aura:attribute name="OrderTotalPointAmount" type="currency" default="0" description="주문 총 포인트 금액"/>
+<aura:attribute name="OrderTotalPaymentAmount" type="currency" default="0" description="주문 총 결제 금액"/>
+
+<aura:attribute name="selectedPaymentMethod" type="String" description=""/>
+<aura:attribute name="selectedPaymentAmount" type="Decimal" description=""/>
+
+<aura:attribute name="columns" type="List" default="[]"/>
+<aura:attribute name="standardOrderData" type="List" default="[]"/>
+<aura:attribute name="soldOutOrderData" type="List" default="[]"/>
+<aura:registerEvent name="EX_SuppliesOrderList_evt" type="c:EX_SuppliesOrderList_evt"/>
+
+<aura:attribute name="Point" type="currency" default="0"/>
+<aura:attribute name="Card" type="currency" default="0"/>
+<aura:attribute name="Cash" type="currency" default="0"/>
+<aura:attribute name="CashDeposit" type="currency" default="0"/>
+<aura:attribute name="UrlPayment" type="currency" default="0"/>
+
+<aura:attribute name="stdConsumableOrderId" type="String" default=""/>
+<aura:attribute name="soldOutConsumableOrderId" type="String" default=""/>
+
+<aura:attribute name="paymentURL" type="String" default=""/>
+<aura:attribute name="virtualAccount" type="String" default=""/>
+
+<aura:attribute name="latePayment" type="boolean" />
+
+<aura:attribute name="IsPrint" type="Boolean" description="견적서/명세서 출력여부" default="true"/>
+<aura:attribute name="isPointPayment" type="Boolean" default="true" description="최초 결제시 포인트 선결제 후 카드/현금 결제 진행"/>
+
+<aura:attribute name="employeeName" type="String" />
+<aura:attribute name="employeeNum" type="String" />
+<aura:attribute name="companyName" type="String" />
+<aura:attribute name="companyList" type="List" />
+<aura:attribute name="listEmp" type="list" default="['관계를 선택해주세요.','본인','배우자', '부모', '자녀']"/>
+
+<aura:attribute name="chkEmployeeName" type="String" />
+<aura:attribute name="chkEmployeeNum" type="String" />
+<aura:attribute name="chkCompanyName" type="String" />
+<aura:attribute name="chkRelationName" type="String" />
+<aura:attribute name="chkEmployeePhone" type="String" />
+<aura:attribute name="chkEmployeeRelationShip" type="String" />
+
+<aura:attribute name="isConfirm" type="Boolean" default="true"/>
+<aura:attribute name="isTimer" type="Boolean" default="false"/>
+<aura:attribute name="reTimer" type="Boolean" default="false"/>
+<aura:attribute name="finishedTimer" type="Boolean" default="false"/>
+
+<aura:attribute name="setIntervalId" type="Integer"/>
+<aura:attribute name="minutes" type="Integer"/>
+<aura:attribute name="countDownMinutes" type="Integer" default="3"/>
+<aura:attribute name="countDownSeconds" type="Integer" default="0"/>
+<aura:attribute name="phonenumber" type="String"/>
+<aura:attribute name="authText" type="String"/>
+<aura:attribute name="remark" type="String"/>
+
+<aura:attribute name="isAuth" type="Boolean" default="false" />
+<aura:attribute name="authActive" type="Boolean" default="false" />
+
+<aura:attribute name="authCompText" type="String" default=""/>
+<aura:attribute name="expAuthTime" type="DateTime"/>
+
+<aura:attribute name="ContactVIP" type="Integer" description="해당 고객 VIP 할인율"/>
+<aura:attribute name="isEmployee" type="boolean" default="false" description="임직원 여부"/>
+<aura:attribute name="discountType" type="String"  description="할인 유형"/>
+<aura:attribute name="prOrderNumber" type="String" description="주문 내역 시작시 생성되는 ProductRequest OrderNumber"/>
+<aura:attribute name="isManagement" type="Boolean" default="false"/>
+
+
+<aura:attribute name="vipDiscount" type="currency" default="0" description="vip 할인율"/>
+<aura:attribute name="vipDiscountAmount" type="currency" default="0" description="vip 총 할인 금액"/>
+<aura:attribute name="empDiscountAmount" type="currency" default="0" description="임직원 총 할인 금액"/>
+<!--24 02 14 hyungho.chun 임직원할인이 방금됐는지 여부(화면에서 임직원탭 사라지게할지말지 여부)-->
+<aura:attribute name="empDiscountJustApplied" type="Boolean" default="false" description="임직원할인 방금 적용 여부"/>
+<aura:attribute name="promotionDiscountAmount" type="currency" default="0" description="프로모션 총 할인 금액"/>
+
+
+<!-- 24 01 05 PHJ -->
+<aura:attribute name="alreadyAppliedPromotionDiscountAmount" type="currency" default="0" description="이미 적용된 프로모션 총 할인 금액"/>
+
+
+<aura:registerEvent name="FS_CustomerDiscountPopEvt" type="c:FS_CustomerDiscountPopEvt"/>
+
+<!-- Handler    -->
+<aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+
+<aura:handler event="c:EX_SuppliesOrderList_evt" action="{!c.fnAddData}"/>
+
+<!--    <aura:handler name="change" value="{!v.latePayment}" action="{!c.paymentChange}"/>-->
+<aura:attribute name="isCancelPayment" type="Boolean" default="false" description="결제 취소여부 취소시 현재 모달도 닫힘"/>
+<aura:attribute name="authOver" type="Boolean" default="false" description="인증완료여부"/>
+
+<!-- Header -->
+<!--            <header>-->
+
+<lightning:tabset class="bgWhite" selectedTabId="four">
+<aura:if isTrue="{!or(v.vipDiscount, and(v.empDiscountAmount,not(v.empDiscountJustApplied)))}"> <!--24 02 14 hyungho.chun vip할인이거나 이미 임직원할인이받은상태일때만 임직원할인탭안보이게-->
+
+<aura:set attribute="else">
+ <lightning:tab label="임직원" id="one" >
+     <ul class="tabInner1 wrapFlex">
+         <li class="inputSearch">
+             <lightning:select aura:id="listcompany" label="회사명" 
+                               disabled="false" onchange="{!c.fnInputChange}"
+                               required="true" messageWhenValueMissing="회사를 선택해주세요">
+                 <option value="">회사를 선택해주세요.</option>
+                 <aura:iteration items="{!v.companyList}" var="row" indexVar="index">
+                     <option value="{!row.companyId }">{!row.companyName}</option>
+                 </aura:iteration>
+             </lightning:select>
+         </li>
+         <li >
+             <lightning:input name="input2" disabled="false" required="true" value="{!v.employeeNum}"
+                              label="사원번호" class="MCS_input inputWit flex1 detail_input"
+                              messageWhenValueMissing="사원번호를 입력해주세요" onchange="{!c.fnInputChange}"/>
+         </li>
+     </ul>
+     <ul class="tabInner1 wrapFlex">
+         <li class="inputSearch">
+             <lightning:input name="input1" disabled="false" required="true" value="{!v.employeeName}"
+                              label="성명" class="MCS_input inputWit flex1 detail_input"
+                              messageWhenValueMissing="성명을 입력해주세요" onchange="{!c.fnInputChange}"/>
+         </li>
+         <li>
+             <lightning:select aura:id="listEmp" label="관계"  
+                               disabled="false" 
+                               required="true">
+                 <aura:iteration items="{!v.listEmp}" var="row" indexVar="index">
+                     <option value="{!row}">{!row}</option>
+                 </aura:iteration>
+             </lightning:select>
+         </li>
+     </ul>
+     <ul class="tabInner1 wrapFlex">
+         <div class="slds-col slds-size_1-of-5 ">
+             <lightning:button aura:id="infoBtn2" label="검색" onclick="{!c.fnIdentify}" class="bottomBtn bBtn_fillPin slds-m-top_medium" />
+         </div>
+     </ul>
+     <ul class="tabInner1 wrapFlex">
+         <div class="modalbox last" style="color:red;">
+             <p>입력된 사항은 사실과 다름 없으며, 사실과 다를 경우 불이익을 받을 수 있음을 확인합니다.</p>
+         </div>
+     </ul>
+     <ul class="tabInner1 wrapFlex">
+         <li class="inputSearch">
+             <lightning:input type="tel" label="전화번호" value="{!v.chkEmployeePhone}"
+                              class="MCS_input inputWit flex1 detail_input"
+                              messageWhenValueMissing="전화번호를 입력해주세요" required="true" onblur="{!c.handlePhoneBlur}"/>
+         </li>
+         <li class="inputSearch">
+             <lightning:input type="tel" label="전화번호" value=""
+                              class="MCS_input inputWit flex1 detail_input" style="display:none"
+                              />
+         </li>
+     </ul>
+     <ul class="tabInner1 wrapFlex">
+
+         <aura:if isTrue="{!v.isAuth}">
+            <aura:if isTrue="{!v.reTimer}">
+                <div class="slds-col slds-size_1-of-5 slds-p-top_medium ">
+                    <lightning:button label="재발송" onclick="{! c.fnReAuthNo}" disabled="{!v.authActive}"/>
+                </div>
+                <aura:set attribute="else">
+                    <div class="slds-col slds-size_1-of-5 slds-p-top_medium ">
+                        <lightning:button label="인증번호발송" onclick="{! c.fnAuthNo}" disabled="{!v.authActive}"/>
+                    </div>
+                </aura:set>
+            </aura:if>
+             <aura:if isTrue="{!v.isTimer}">
+                
+                 <div class="slds-col slds-size_1-of-6">
+                     <!--23 12 18 hyungho.chun 자동완성으로 콤마들어가서 type=number -> type=text -->
+                     <lightning:input name="authCompText" type="text" value="{!v.authCompText}" pattern="[0-9]{5}"/>
+                 </div>
+                 <div class="slds-col slds-size_1-of-2 slds-p-top_medium">
+                     <lightning:button variant="brand" label="인증번호 확인" onclick="{!c.compareAuth}" class="slds-m-horizontal_small"/>
+                     {! v.countDownMinutes} 분    {!v.countDownSeconds} 초
+                 </div>
+             </aura:if>
+         </aura:if>
+     </ul>
+     <div class="gridMasterBottom mt_16">
+         <div class="gridMasterBtnWrap">
+             <lightning:button variant="brand" label="확인" onclick="{!c.handleEmpResult}" disabled="{!v.isConfirm}"/>
+
+         </div>
+     </div>
+ </lightning:tab>
+</aura:set>
+</aura:if>
+<!--            <lightning:tab label="견적서" id="three">-->
+<!--                <c:EX_SuppliesQuoteList aura:id="EX_SuppliesQuoteList" standardOrderData="{!v.standardOrderData}" soldOutOrderData="{!v.soldOutOrderData}" contactId="{!v.contactId}" objCont="{!v.objCont}" stdConsumableOrderId="{!v.stdConsumableOrderId}"-->
+<!--                                        soldOutConsumableOrderId="{!v.soldOutConsumableOrderId}" latePayment="{!v.latePayment}" IsPrint="{!v.IsPrint}"></c:EX_SuppliesQuoteList>-->
+<!--            </lightning:tab>-->
+<lightning:tab label="결제" id="four">
+
+<ul class="tabInner3">
+ <!--최종결제금액 start-->
+ <li>
+     <ul class="accountDetailList">
+         <li class="acTtl">
+             최종 결제 금액
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>판매금액</li>
+                 <!-- <li><span><lightning:formattedNumber value="{!if(v.stdOrderTotalSalesAmount == 0 , (v.stdOrderTotalPaymentAmount-stdOrderTotalDiscountAmount) , v.stdOrderTotalSalesAmount) }"/></span>원</li> -->
+                 <!--24 02 13 hyungho.chun 항상 총 금액 표기-->
+                 <li><span><lightning:formattedNumber value="{!if(v.stdOrderTotalSalesAmount != 0 , v.stdOrderTotalSalesAmount , v.soldOutOrderTotalSalesAmount) }"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo" >
+                 <li>할인금액</li>
+                 <li style="color:red"><span><lightning:formattedNumber value="{!v.stdOrderTotalDiscountAmount}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo" style="color:gray">
+                 <li> - VIP/임직원</li>
+                 <li><span><lightning:formattedNumber value="{!v.vipDiscountAmount > v.empDiscountAmount ? v.vipDiscountAmount :v.empDiscountAmount}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo" style="color:gray">
+                 <li> - 프로모션</li>
+                 <li><span><lightning:formattedNumber value="{!v.promotionDiscountAmount}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo" style="color:gray">
+                 <li> - 소모품쿠폰 </li>
+                 <li><span><lightning:formattedNumber value="0"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>배송비</li>
+                 <li><span><lightning:formattedNumber value="0"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>총결제금액</li>
+                 <li><span><lightning:formattedNumber value="{!v.stdOrderTotalPaymentAmount}"/></span>원</li>
+             </ul>
+         </li>
+     </ul>
+ </li>
+ <!--최종결제금액 End-->
+ <!--결제결과 start-->
+ <li>
+     <ul class="accountDetailList">
+         <li class="acTtl">
+             결제 결과
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>현금</li>
+                 <li><span><lightning:formattedNumber value="{!v.Cash}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>카드</li>
+                 <li><span><lightning:formattedNumber value="{!v.Card}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>포인트</li>
+                 <li><span><lightning:formattedNumber value="{!v.Point}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>가상계좌</li>
+                 <li><span><lightning:formattedNumber value="{!v.CashDeposit}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>결제 URL</li>
+                 <li><span><lightning:formattedNumber value="{!v.UrlPayment}"/></span>원</li>
+             </ul>
+         </li>
+         <li>
+             <ul class="accountInfo">
+                 <li>결제금액</li>
+                 <!-- <li><span><lightning:formattedNumber value="{!v.OrderTotalPaymentAmount}"/></span>원</li> -->
+                 <!--24 02 13 hyungho.chun-->
+                 <li><span><lightning:formattedNumber value="{!v.stdOrderTotalPaymentAmount}"/></span>원</li>
+             </ul>
+         </li>
+     </ul>
+ </li>
+ <!--결제결과 End-->
+</ul>
+
+
+
+
+
+
+
+
+
+</lightning:tab>
+</lightning:tabset>
+{!v.modalContent}
+
+
+</aura:component>

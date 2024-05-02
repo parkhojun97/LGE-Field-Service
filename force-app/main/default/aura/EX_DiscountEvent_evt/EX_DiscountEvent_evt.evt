@@ -1,0 +1,7 @@
+<aura:event type="APPLICATION" description="Event template">
+    <!-- <aura:attribute name="standardOrderData" type="List"  default="[]"/>
+    <aura:attribute name="soldOutOrderData" type="List" default="[]"/> -->
+    <aura:attribute name="standardOrderData" type="String" default="" />
+    <aura:attribute name="soldOutOrderData" type="String" default="" />
+    <!-- <aura:attribute name="complete" type="boolean" default="false" description="결제 완료"/> -->
+</aura:event>

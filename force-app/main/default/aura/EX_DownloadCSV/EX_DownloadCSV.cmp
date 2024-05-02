@@ -1,0 +1,7 @@
+<!--
+ - Created by A80598 on 2023-01-20.
+ -->
+
+<aura:component description="EX_DownloadCSV">
+    <aura:handler event="c:EX_DownloadCSV_evt" action="{!c.fnDownloadCSV}"/>
+</aura:component>

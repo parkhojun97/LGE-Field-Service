@@ -1,0 +1,24 @@
+<!--
+  @description       : 
+  @author            : hyungho.chun@dkbmc.com
+  @group             : 
+  @last modified on  : 01-04-2024
+  @last modified by  : hyungho.chun@dkbmc.com
+-->
+<aura:component implements="lightning:backgroundUtilityItem,lightning:hasPageReference"
+    access="global" description="EX_TabManagement">
+    
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:navigationItemAPI aura:id="navigationItemAPI"/>
+    
+    <lightning:utilityBarAPI aura:id="utilitybar"/>
+    <lightning:omniToolkitAPI aura:id="omniToolkit" />
+
+    <aura:handler event="lightning:tabFocused" action="{! c.onTabFocused }"/>
+    <!--24 01 04 hyungho.chun 프로모션용 탭생성시바로제거-->
+    <aura:handler event="lightning:tabCreated" action="{! c.tabCreated}"/>
+    <aura:registerEvent name="EX_Search_evt" type="c:EX_Search_evt" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    
+</aura:component>

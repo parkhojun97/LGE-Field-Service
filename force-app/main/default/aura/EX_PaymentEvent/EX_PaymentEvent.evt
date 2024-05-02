@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_PaymentEvent_evt">
+  <aura:attribute name="targetAmount" type="integer" description="결제 대상 금액"/>
+</aura:event>

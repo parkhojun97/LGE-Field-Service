@@ -1,0 +1,6 @@
+<aura:event type="APPLICATION" description="EX_ReceiptInfoEvent_evt">
+    <aura:attribute name="cashReceiptMobile" type="String" default="" description="현금영수증용 발급번호" />
+    <aura:attribute name="proofType" type="String" default="" description="현금영수증(B)" />
+    <aura:attribute name="proofCashType" type="String" default="" description="소득공제(CA)/자진발급(CB)/사업자지출증빙(CC)" />
+    <aura:attribute name="proofCashNoType" type="String" default="" description="현금영수증용 발급번호 -> 휴대폰번호(B) / 사업자번호(F)" />
+</aura:event>

@@ -1,0 +1,8 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2023-06-13.
+ -->
+
+<aura:event type="COMPONENT" description="EXSelectEvent">
+    <aura:attribute name="name" type="String"/>
+    <aura:attribute name="detail" type="Object"/>
+</aura:event>

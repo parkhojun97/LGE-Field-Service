@@ -1,0 +1,12 @@
+<!--
+ -   File Name          : FS_SplitView_evt
+ -   Author             : Changjoo.Sohn
+ -   Group              : Daeu Nextier
+ -   Description        :
+ -   Modifications Log
+ -   Ver   Date         Author                    Modification
+ -   1.0   2022-08-02  Changjoo.Sohn             Initial Version
+-->
+<aura:event type="COMPONENT" description="EX_SplitView_evt">
+    <aura:attribute name="isSplitViewOpened" type="String"/>
+</aura:event>

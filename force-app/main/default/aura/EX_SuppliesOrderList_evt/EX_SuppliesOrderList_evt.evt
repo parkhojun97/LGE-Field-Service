@@ -1,0 +1,9 @@
+<!--
+ - Created by I2MAX.JAEYEONLEE on 2022-12-29.
+ -->
+
+<aura:event type="APPLICATION" description="EX_SuppliesOrderList_evt">
+    <aura:attribute name="standardOrderDataList" type="List" default="[]"/>
+    <aura:attribute name="soldOutOrderDataList" type="List" default="[]"/>
+
+</aura:event>

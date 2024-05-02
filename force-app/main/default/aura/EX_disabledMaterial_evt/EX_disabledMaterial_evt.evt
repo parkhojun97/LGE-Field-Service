@@ -1,0 +1,5 @@
+<aura:event type="APPLICATION" description="EX_disabledMaterial_evt">
+
+    <aura:attribute name="isMaterialDisable" type="Boolean" />
+
+</aura:event>

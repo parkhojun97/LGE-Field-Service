@@ -1,0 +1,7 @@
+<!--
+ - Created by I2MAX.SEUNGHUNAN on 2023-01-17.
+ -->
+
+<aura:event type="APPLICATION" description="EX_SuppliesPartRemark_evt">
+    <aura:attribute name="remark" type="String" description="상담사가 입력한 상담이력" />
+</aura:event>

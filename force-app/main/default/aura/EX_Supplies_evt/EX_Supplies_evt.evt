@@ -1,0 +1,15 @@
+<!--
+ - Created by A75685 on 2022-11-15.
+ -->
+
+<aura:event type="APPLICATION" description="EX_Supplies_evt">
+
+    <aura:attribute name="delimiter" type="String"  description="tab Id 등 이벤트 수신 구분자" />
+    <aura:attribute name="data"      type="Object" />
+    <aura:attribute name="type"      type="String"  />
+    <aura:attribute name="purchaseType" type="String"  description="주문,부품예약 구분자" />
+    <aura:attribute name="requestedReturnQuantity" type="Decimal"  description="회수부품정보 입력한 수량" />
+    <aura:attribute name="originId" type="String" description="원 => 쌍방대치 내릴 경우, 원 삭제용 파람 추가" />
+    <aura:attribute name="disabledCheck" type="Boolean"  description="단종부품 val처리 orderlist로 변경" />
+    <aura:attribute name="crossPartCheck" type="Boolean"  description="쌍방대치 구분" />
+</aura:event>

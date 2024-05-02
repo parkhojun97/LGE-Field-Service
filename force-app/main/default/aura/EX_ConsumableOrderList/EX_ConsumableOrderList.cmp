@@ -1,0 +1,116 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-01-04.
+ -->
+
+<aura:component controller="EX_ConsumablesOrderManagementController" description="EX_ConsumableOrderList">
+<!--    <aura:import library="lightning:confirm" property="LightningConfirm" />-->
+
+    <!-- Infinite Loading Datatable Attribute -->
+    <aura:attribute name="totalRecord" type="Integer" default="0" />
+    <aura:attribute name="recordLimit" type="Integer" default="0" />
+
+    <aura:handler event="c:EX_ConsumablesOrderManagement_evt" action="{!c.fnSearchBtnClick}"/>
+    <aura:registerEvent name="EX_PaginationResearch_evt" type="c:EX_PaginationResearch_evt" />
+    <aura:attribute name="pageOffset" type="Integer" default="0" />
+    <aura:attribute name="onloadControl" type="Boolean" default="true" />
+
+    <aura:attribute name="modalContent" type="Aura.Component"/>
+    <aura:attribute name="mapSearchParam" type="Map" default="{}"/>
+    <aura:attribute name="columns" type="List" default="[]"/>
+    <aura:attribute name="data" type="List" default="[]"/>
+    <aura:attribute name="showSpinner" type="Boolean" default="true"/>
+    <aura:attribute name="objSelected" type="List" default="[]"/>
+    <aura:attribute name="orderData" type="List" default="[]"/>
+
+    <aura:attribute name="channel" type="String" default=""/>
+    <aura:attribute name="orderNumber" type="String" default=""/>
+    <aura:attribute name="orderStatus" type="String" default=""/>
+    <!-- 23.07.10 DKBMC 전형호 (명세서 체크박스 결함건) -->
+    <aura:attribute name="isSpecificationValid" type="Boolean" default=""/>
+
+    <!--23 08 30 hyungho.chun 콜센터직원인 경우 true-->
+    <aura:attribute name="isCenterUser" type="Boolean" default="false"/>
+    <!-- 23 08 31 hyungho.chun 선택한주문이 판매정보가있는지 여부 -->
+    <aura:attribute name="isSrSaleOn" type="Boolean" default="false"/>
+    
+
+    <aura:attribute name="selectedRowsFromWijmo" type="List" default="[]"/>
+    <aura:handler name="EX_CompleteEvent_evt" event="c:EX_CompleteEvent_evt" action="{!c.applyPayment}" />
+
+    <!-- Datatable Sorting  -->
+    <aura:attribute name="sortedBy" type="String" default="Name"/>
+    <aura:attribute name="sortedDirection" type="String" default="asc"/>
+
+
+    <aura:attribute name="exObjId" type="String" description="소모품 임시 메시지 ObjectId" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    <aura:handler name="change" value="{!v.data}" action="{!c.fnSearchData}"/>
+    <aura:registerEvent name="EX_ConsumableOrderList_evt" type="c:EX_ConsumableOrderList_evt" />
+    <aura:registerEvent name="EX_DownloadCSV_evt" type="c:EX_DownloadCSV_evt" />
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:navigationItemAPI aura:id="navigationItemAPI"/>
+    <!-- 소모품 메시지 박스 컴포넌트 -->
+    <c:EX_MessageBox aura:id="dialog" />
+    <ul class="gridHeaderWrap">
+        <li class="gridHeaderTtl">주문내역</li>
+        <li class="gridHeaderBtnWrap">
+
+<!--            <aura:if isTrue="{!and(v.data.OrderChannel=='소모품택배')}">-->
+            <lightning:button title="Excel" label="Excel"
+                              iconName="doctype:excel" class="gridSlaveBtn" onclick="{!c.downloadExcel}" />
+            <aura:if isTrue="{!and(v.channel=='소모품택배')}">
+
+                <lightning:button title="견적/명세서 정보" class="gridSlaveBtn" label="견적/명세서 정보"  disabled="false" onclick="{!c.fnShowPdf}"/>
+                <aura:set attribute="else">
+                    <lightning:button title="견적/명세서 정보" class="gridSlaveBtnDisabled" label="견적/명세서 정보"  disabled="true" onclick="{!c.fnShowPdf}"/>
+
+                </aura:set>
+
+            </aura:if>
+
+            <!--23 09 02 hyungho.chun 영수증버튼숨김-->
+            <!--23 09 08 hyungho.chun disabled기준추가 견적/명세서 버튼 처럼 만듬-->            
+            <aura:if isTrue="{!not(v.isCenterUser)}">
+                <aura:if isTrue="{!v.isSrSaleOn}">
+                    <lightning:button title="영수증" label="영수증" iconName="utility:print" class="gridSlaveBtn"  disabled="false" onclick="{!c.fnReceiptForm}" />
+                    <aura:set attribute="else">
+                        <lightning:button title="영수증" label="영수증" iconName="utility:print" class="gridSlaveBtnDisabled" disabled="true" onclick="{!c.fnReceiptForm}" />
+                    </aura:set>
+                </aura:if>
+                
+            </aura:if>
+            
+<!--            <lightning:button title="다운로드" class="gridSlaveBtnDisabled" disabled="true" label="다운로드" onclick="{!c.downloadCSVFile}"/>-->
+<!--            <lightning:button title="결제URL재전송" label="결제URL재전송" onclick="{!c.dmlBeforeResend}"/>-->
+<!--            <lightning:button title="가상계좌재전송" label="가상계좌재전송" onclick="{!c.dmlBeforeResend}"/>-->
+<!--            <lightning:button title="SMS재전송" label="SMS재전송" onclick="{!c.dmlBeforeResend}"/>-->
+        </li>
+    </ul>
+<!--    130px-->
+    <div class="gridMaster" style="height:300px;">
+<!--        <lightning:datatable-->
+<!--                aura:id="orderListDt"-->
+<!--                columns="{!v.columns}"-->
+<!--                data="{!v.data}"-->
+<!--                keyField="Id"-->
+<!--                onrowselection="{!c.fnSeleceted}"-->
+<!--                maxRowSelection="1"-->
+<!--                suppressBottomBar="true"-->
+<!--                enableInfiniteLoading="{!greaterthan(v.totalRecord, v.data.length)}"-->
+<!--                onloadmore="{!c.fnLoadMore}"-->
+<!--                showRowNumberColumn="true"-->
+
+<!--                onsort="{!c.updateColumnSorting}"-->
+<!--                sortedBy="{!v.sortedBy}"-->
+<!--                sortedDirection="{!v.sortedDirection}"-->
+<!--        />-->
+        <c:EXWijmo aura:id="wijmo_EXConsumableOrderList"  onmessage="{!c.onWijmoMessage1}"
+                   stub="{! 'EXConsumableOrderList'}" css="{! 'EXWijmoReconciled'}"/>
+    </div>
+    <div class="slds-m-top_x-small">
+        <span>총 : {!v.totalRecord} 건</span>
+    </div>
+
+    {!v.modalContent}
+</aura:component>

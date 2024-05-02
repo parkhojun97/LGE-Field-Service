@@ -1,0 +1,5 @@
+<aura:event type="APPLICATION" description="EX_PaymentCancelEvent_evt">
+    <aura:attribute name="amount" type="Decimal"  description="포인트승인실패시 결제금액 리셋용"/>
+    
+
+</aura:event>

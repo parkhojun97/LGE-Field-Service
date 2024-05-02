@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_PaymentModalCancelEvt_evt">
+    <aura:attribute name="cancelModal" type="Boolean" default="false" description="결제취소 모달"/>
+</aura:event>

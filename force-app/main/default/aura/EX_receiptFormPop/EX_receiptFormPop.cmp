@@ -1,0 +1,67 @@
+<!--
+  @description       : 
+  @author            : hyungho.chun@dkbmc.com
+  @group             : 
+  @last modified on  : 09-14-2023
+  @last modified by  : hyungho.chun@dkbmc.com
+-->
+<aura:component description="EX_receiptFormPop"
+                implements="force:hasRecordId,force:lightningQuickActionWithoutHeader,flexipage:availableForAllPageTypes,lightning:actionOverride">
+
+    <!-- Parameter Attribute -->
+    <aura:attribute name="sHeader"          type="String"       access="global" default="Confirm"   description="Header 내용"           />
+    <aura:attribute name="bIsShowX"         type="Boolean"      access="global" default="true"      description="상단 X 표시 출력 여부"  />
+    <aura:attribute name="vfPageUrl" type="String"/>
+    <aura:attribute name="productRequestId" type="String" default=""/>
+    <aura:attribute name="OrderChannel" type="String" default=""/>
+    <aura:attribute name="listRentId" type="List" default="[]"/>
+    <aura:attribute name="listResvRecordId" type="List" default="[]"/>
+    <aura:attribute name="pdfType2" type="String" />
+    <aura:attribute name="pdfType" type="String"/>
+    <aura:attribute name="popWidth" type="String"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+
+    <div aura:id="modalContainer">
+        <section role="alertdialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_medium" aria-modal="true">
+
+            <div class="slds-modal__container" style="{!v.popWidth}">
+                <!-- Header -->
+                <header class="modal-header slds-modal__header">
+                    <aura:if isTrue="{!v.bIsShowX}">
+                        <lightning:buttonIcon   iconName="utility:close" size="small" alternativeText="Close" variant="bare-inverse" class="slds-modal__close"
+                                                onclick="{!c.fnCancel}" />
+                    </aura:if>
+                    <h2 class="slds-text-heading_medium" id="modal-heading-id">{!v.sHeader}</h2>
+                </header>
+
+                <!-- Content -->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <lightning:layout class="slds-p-top--small slds-align_absolute-center" multipleRows="true">
+                        <lightning:layoutItem size="12" class="iframe-padding-left-right">
+                            <p align="middle">
+                            <aura:if isTrue="{!v.popWidth != null}">
+                                <iframe aura:id="vfFrameMaster" class="iFrameStyle" src="{!v.vfPageUrl}" style="width: 80%;height: 60vh; border: solid;"/>
+                                <aura:set attribute="else">
+                                    <iframe aura:id="vfFrameMaster" class="iFrameStyle" src="{!v.vfPageUrl}" style="width: 100%;height: 78vh; border: solid;"/>
+                                </aura:set>
+                            </aura:if>
+                            </p>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </div>
+
+                <!-- Footer -->
+                <footer class="slds-modal__footer" style="text-align: center;">
+                    <!-- <lightning:button name="confirmButton"  label="{!v.sConfirmBtn}"    aura:id="confirmButton" onclick="{!c.fnConfirmAction}" variant="brand" /> -->
+                    <aura:if isTrue="{!v.popWidth != null}">
+                        <lightning:button name="printButton"   label="출력"     aura:id="printButton"  onclick="{!c.fnPrint}"  />
+                    </aura:if>
+                    <lightning:button name="cancelButton"   label="닫기"     aura:id="cancelButton"  onclick="{!c.fnCancel}"  />
+                </footer>
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </div>
+</aura:component>

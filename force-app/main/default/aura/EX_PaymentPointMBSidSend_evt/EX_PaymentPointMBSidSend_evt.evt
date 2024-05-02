@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_PaymentPointMBSidSend_evt">
+    <aura:attribute name="mbsCustId" type="String" />
+</aura:event>

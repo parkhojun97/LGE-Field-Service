@@ -1,0 +1,710 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-01-11.
+ -->
+
+<aura:component
+        controller="EX_IntegrationOrderManagementController"
+        description="EX_IntegrationOrderDetailList">
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+
+    <aura:registerEvent name="EX_Overflow_evt" type="c:EX_Overflow_evt"/>
+
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+
+    <aura:attribute name="vfHost" type="String"/>
+
+    <aura:attribute name="columns" type="List" default="[]"/>
+    <aura:attribute name="data" type="List" default="[]"/>
+    <aura:attribute name="dataForCancel" type="List" default="[]"/>
+    <aura:attribute name="mapSearchParam" type="Map" default="{}"/>
+    <aura:attribute name="objSelected" type="List" default="[]"/>
+
+    <aura:attribute name="channelType" type="Boolean" default="false" description="소모품 주문 채널"/>
+    <!--0513 주소 검색 모듈 전환 -->
+    <aura:attribute name="modalContent" type="Aura.Component[]"/>
+    <!--고객주소 정제후 받는 event -->
+    <aura:handler event="c:CM_Address_evt"         action="{!c.fnGetAddress}"  />
+
+
+    <!-- 주문취소 START -->
+    <aura:attribute name="ShowModal" type="Boolean" default="false" description="취소 모달 출력 여부"/>
+    <aura:attribute name="selectedMasterData" type="List" default="[]"/>
+    <aura:attribute name="closeModalColumns" type="List" default="[]"/>
+    <aura:attribute name="caseId" type="String" description="Case로 생성된 소모품 주문의 CaseId"/>
+    <aura:attribute name="caseDescription" type="String" description="주문내역에 대한 상담 이력"/>
+    <aura:attribute name="NewCaseDescription" type="String" description="주문내역에 대한 상담 내용"/>
+    <aura:attribute name="bankCode" type="String" description="은행코드"/>
+    <aura:attribute name="bankOptions" type="List" description="은행코드"/>
+    <aura:attribute name="bankAccountNo" type="String" description="계좌번호"/>
+    <aura:attribute name="receiverName" type="String" description="예금주명"/>
+    <aura:attribute name="isVBANKRefund" type="Boolean" default="true" description="가상계좌 환불 정보 미출력 여부"/>
+
+
+    <aura:attribute name="isValidBankAccount" type="Boolean" default="false" description="가상계좌 환불 정보 유효"/>
+
+    <aura:attribute name="componentName" type="String"/>
+
+    <!-- 주문취소 버튼 활성화 여부 -->
+    <!-- ThinQ 관련 버튼 제거 -->
+    <!-- <aura:attribute name="orderCancelBtnDisabled" type="Boolean" default="false"/>
+    <aura:handler name="change" value="{!v.orderCancelBtnDisabled}" action="{!c.fnOrderCancelBtnChg}"/> -->
+    <!-- 주문취소 END -->
+
+    <!-- 반품요청 START -->
+    <aura:attribute name="newAddress" type="String" default=""/>
+    <aura:attribute name="newDetailAddress" type="String" default=""/>
+
+    <aura:attribute name="showReturnOrderModal" type="Boolean" default="false" description="반품 모달 표시 여부"/>
+    <aura:attribute name="returnOrder_disable" type="Boolean" default="false" description="반품 버튼 비활성화 여부"/>
+    <aura:attribute name="returnOrderColumns" type="List" default="[]" description="반품"/>
+    <aura:attribute name="contactConsigneeInfo" type="Map" default="{}" description="반품 요청에서의 고객/수취인 정보"/>
+    <aura:attribute name="productRequestLineItemsByReturnRequest" type="List" default="[]"
+                    description="반품 요청에서의 ProductRequestLineItems"/>
+    <aura:attribute name="isSameContactByReturnRequest" type="Boolean" default="true"
+                    description="반품 요청에서의 결제자 정보와 동일"/>
+    <aura:attribute name="isSameReturnRequestReason" type="Boolean" default="true" description="반품 요청에서의 반품 사유 동일"/>
+    <aura:attribute name="isSameCancelRequestReason" type="Boolean" default="true" description="주문 취소에서의 취소 사유 동일"/>
+    <aura:attribute name="isCIC" type="Boolean" default="false" description="소모품 주문 채널의 CIC 여부"/>
+    <aura:attribute name="hasPointAmount" type="Boolean" default="false" description="반품요청시 반품요청건의 포인트금액 여부"/>
+
+    <!--23 08 03 hyungho.chun-->
+    <aura:attribute name="hasETCAmount" type="Boolean" default="false" description="포인트외금액존재여부"/>
+    
+    <aura:attribute name="isMig" type="Boolean" default="false" description="반품요청시 기존 주문건의 Migration Data 여부"/>
+
+    <aura:attribute name="caseInfo" type="Map" default="{}" description="반품 요청에서의 Case 정보"/>
+    <aura:attribute name="caseDescriptionByReturnRequest" type="String" description="반품요청시 원 주문의 상담이력 데이터"/>
+    <aura:attribute name="appendRemarkByReturnRequest" type="String"
+                    description="반품요청시 원 주문의 상담이력 데이터에 추가 Update 상담이력 데이터"/>
+
+    <aura:attribute name="isEvt" type="Boolean" default="false" />
+
+    <!-- 반품요청 버튼 활성화 여부 -->
+    <!-- ThinQ 관련 버튼 제거 -->
+    <!-- <aura:attribute name="returnRequestBtnDisabled" type="Boolean" default="false"/>
+    <aura:handler name="change" value="{!v.returnRequestBtnDisabled}" action="{!c.fnReturnRequestBtnChg}"/> -->
+    <!-- 반품요청 END-->
+
+    <!-- 교환요청 버튼 활성화 여부 -->
+    <aura:attribute name="exchangeRequestBtnDisabled" type="Boolean" default="false"/>
+    <aura:handler name="change" value="{!v.exchangeRequestBtnDisabled}" action="{!c.fnExchangeRequestBtnChg}"/>
+    <!-- 교환요청 START -->
+    <aura:attribute name="exChangeColumns" type="List" default="[]" description="교환요청 Column"/>
+    <aura:attribute name="exchangeOrderListColumns" type="List" default="[]" description="교환주문내역"/>
+    <aura:attribute name="showExchangeModal" type="Boolean" default="false" description="교환요청 모달 표시 여부"/>
+    <!-- 교환요청 END-->
+
+
+    <!-- 배송/송장 정보 START -->
+    <aura:attribute name="showDeliveryInformationModal" type="Boolean" default="false" description="배송/송장 모달 표시 여부"/>
+    <aura:attribute name="deliveryInformationOrderColumns" type="List" default="[]" description="배송/송장 Column"/>
+    <aura:attribute name="deliveryInformationData" type="List" default="[]"
+                    description="배송/송장 정보"/>
+    <!-- 배송/송장 정보 END-->
+
+
+    <!-- 소모품 메시지 박스 컴포넌트 -->
+    <c:EX_MessageBox aura:id="dialog"/>
+    <aura:attribute name="exObjId" type="String" description="소모품 임시 메시지 ObjectId"/>
+    <aura:attribute name="exObjIdList" type="List" description="소모품 임시 메시지 ObjectId List"/>
+
+
+    <!-- 카카오 모달창 Attribute -->
+    <aura:attribute name="kakaoModal" type="Boolean" default="false"/>
+    <aura:attribute name="receiverNumber" type="String"/>
+    <aura:attribute name="receiverMsg" type="String"/>
+    <aura:attribute name="resendType" type="String"/>
+
+    <aura:attribute name ="isFromCloseCallback" type="Boolean" default="false" description="closeCallback 모달 닫기 실행 여부 "/>
+
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    <aura:registerEvent name="EX_IntegrationOrderList_evt" type="c:EX_IntegrationOrderList_evt"/>
+
+    <aura:handler event="c:EX_IntegrationOrderManagement_evt" action="{!c.fnButtonInit}"/>
+
+    <!-- 선택한 소모품 주문 Data 인입     -->
+    <!-- <aura:handler event="c:EX_ConsumableOrderList_evt" action="{!c.getOrderLineItemData}"/> -->
+    <aura:handler event="c:EX_IntegrationOrderListNew_evt" action="{!c.getOrderLineItemData}"/>
+    <aura:attribute name="rowClass" type="String"/>
+    <!-- 23 07 13 hyungho.chun -->
+    <aura:attribute name="body" type="Aura.Component[]" default=""/>
+    <aura:attribute name="footer" type="Aura.Component[]" default=""/>
+    <aura:handler name="change" value="{!v.data}" action="{!c.fnInitialize}"/>
+
+    <lightning:accordionSection name="A" label="상세 주문 내역" class="gridSlaveTable">
+        <aura:set attribute="actions">
+            <!-- ThinQ 관련 버튼 제거 -->
+            <!-- <lightning:button aura:id="orderCancelBtn" title="주문취소" label="주문취소" class="gridSlaveBtn"
+                              disabled="{!v.orderCancelBtnDisabled}" onclick="{!c.fnOpenOrderCancelModal}"/>
+            <lightning:button aura:id="returnRequestBtn" title="반품요청" label="반품요청" class="gridSlaveBtn"
+                              disabled="{!v.returnRequestBtnDisabled}" onclick="{!c.fnOpenReturnOrderModal}"/> -->
+            <lightning:button aura:id="exchangeRequestBtn" title="교환요청" label="교환요청" class="gridSlaveBtn"
+                              disabled="{!v.exchangeRequestBtnDisabled}" onclick="{!c.fnShowConsumableOrder}"/>
+            <!--                    <lightning:button title="판매저장" label="판매저장" class="gridSlaveBtn" onclick="{!c.fnInDevelopToast}"/>-->
+        </aura:set>
+
+        <div style="height:300px">
+            <c:EXWijmo aura:id="EXIntegrationOrderDetailList" onmessage="{!c.onWijmoMessage}"
+                   stub="{! 'EXIntegrationOrderDetailList'}" css="{! 'EXWijmoReconciled'}"/>
+        </div>
+<!--        <div style="height:300px">-->
+<!--                <lightning:datatable-->
+<!--                aura:id="orderListDt"-->
+<!--                columns="{!v.columns}"-->
+<!--                data="{!v.data}"-->
+<!--                keyField="Id"-->
+<!--                onrowselection="{!c.fnSelected}"-->
+<!--                onrowaction="{!c.handleRowAction}"-->
+<!--                suppressBottomBar="true"/>-->
+<!--        </div>-->
+
+    </lightning:accordionSection>
+
+    <!-- 주문취소 모달 -->
+    <!-- <aura:if isTrue="{!v.ShowModal}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_large">
+            <div class="slds-modal__container">
+                
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnModalClose}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">주문 취소</h2>
+                </header>
+
+                
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+                    <h2 class="slds-card__header-title">주문 정보</h2>
+                    <lightning:input type="checkbox" label="취소사유동일"
+                                     class="slds-m-top_small slds-text-align_right"
+                                     value="{!v.isSameCancelRequestReason}"
+                                     checked="{!v.isSameCancelRequestReason}"/>
+                    <div class="slds-var-m-around_large">
+                        <lightning:datatable
+                                aura:id="cancelDataTable"
+                                columns="{!v.closeModalColumns}"
+                                data="{!v.dataForCancel}"
+                                keyField="Id"
+                                suppressBottomBar="true"
+                                oncellchange="{!c.fnChkVal}"
+                                hideCheckboxColumn="true"
+                        />
+                    </div>
+
+                    <div class="slds-var-m-around_large">
+                        <lightning:textarea name="input0" label="상담 이력"
+                                            value="{!v.caseDescription}"
+                                            placeholder=" "
+                                            disabled="true"/>
+
+                    </div>
+
+                    <aura:if isTrue="{!v.isVBANKRefund == false}">
+                        <h2 class="slds-card__header-title" style="margin-top: 25px;">가상계좌 환불정보</h2>
+                        <div class="slds-var-m-around_large">
+                            <lightning:input label="예금주명" value="{!v.receiverName}" placeholder="홍길동"
+                                             disabled="{!v.isVBANKRefund}" class="slds-size_4-of-12"/>
+                            <lightning:select aura:id="select_bank_code" label="은행코드" value="{!v.bankCode}"
+                                              disabled="{!v.isVBANKRefund}" class="slds-size_4-of-12">
+                                <aura:iteration items="{!v.bankOptions}" var="option">
+                                    <option text="{!option.label}" value="{!option.value}"></option>
+                                </aura:iteration>
+                            </lightning:select>
+                            <lightning:input label="계좌번호" value="{!v.bankAccountNo}" placeholder="XXXXXX-YY-ZZZZZC"
+                                             disabled="{!v.isVBANKRefund}" class="slds-size_4-of-12"/>
+                            <div class="slds-size_2-of-12" style="margin-top:10px;">
+                                <lightning:button variant="neutral" label="계좌검증" onclick="{!c.fnCheckBankAccount}"
+                                                  disabled="{!v.isVBANKRefund}"/>
+                            </div>
+                        </div>
+                    </aura:if>
+
+                </div>
+
+                
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="주문 취소" onclick="{!c.fnCancel}"/>
+                    <lightning:button variant="neutral" label="닫기" onclick="{!c.fnModalClose}"/>
+                </footer>
+            </div>
+        </section>
+
+        
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if> -->
+
+    <!-- 교환 모달 -->
+    <!-- <aura:if isTrue="false">
+        
+        <aura:if isTrue="{!v.showSpinner}">
+            <div>
+                <lightning:spinner variant="brand" alternativeText="Waiting" size="medium"/>
+            </div>
+        </aura:if>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_large">
+
+            <div class="slds-modal__container">
+                
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseExchangeModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">교환 요청</h2>
+                </header>
+
+
+                
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+                    <h2 class="slds-card__header-title">고객 정보</h2>
+
+                    <div style="display:flex; margin-left: 0 !important"
+                         class="gridWrap cBox ml_12 bgLightGray slds-p-around_medium">
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pr_24 pl_12">
+                            
+                            <ul class="detailDataInner">
+                                
+                                <div class="profileBoxTtl slds-m-right_medium">
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                </div>
+                                <li>
+                                    <div>
+                                        <lightning:input name="input1-1"
+                                                         readonly="true"
+                                                         label="고객명"
+                                                         value="{!v.contactConsigneeInfo.ContactName}"
+                                        />
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         label="전화번호"
+                                                         value="{!v.contactConsigneeInfo.ContactMobilePhone}"
+                                                         class="" readonly="true"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         readonly="true"
+                                                         label="고객주소"
+                                                         value="{!v.contactConsigneeInfo.ContactAddress}"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         readonly="true"
+                                                         label="고객상세주소"
+                                                         value="{!v.contactConsigneeInfo.ContactDetailAddress}"/>
+                                    </div>
+                                    <div>
+
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pl_24 pr_12">
+                            
+                            <ul class="detailDataInner">
+
+                                <li>
+                                    <div>
+                                        <lightning:input name="input2-1"
+                                                         label="수취인명"
+                                                         value="{!v.contactConsigneeInfo.ConsigneeName}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"/>
+                                    </div>
+                                    <div>
+
+                                        <lightning:input name="input2-3"
+                                                         label="수취인 전화번호"
+                                                         value="{!v.contactConsigneeInfo.ConsigneePhone}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"
+                                                         onchange="{!c.fnPhoneChg}"/>
+                                    </div>
+                                    <aura:if isTrue="{!not(v.isSameContactByReturnRequest)}">
+                                        <div class="slds-grid">
+
+                                            <lightning:input name="input2-4"
+                                                             label="수취인 주소"
+                                                             value="{!v.newAddress}"
+                                                             disabled="true" class="width_80"/>
+                                            
+
+
+                                            <lightning:button class="btn_tm" label="검색" title="검색"
+                                                              onclick="{!c.fnAddressSearch}"/>
+
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div>
+                                                <lightning:input name="input2-4"
+                                                                 label="수취인 주소"
+                                                                 value="{!v.contactConsigneeInfo.ConsigneeAddress}"
+                                                                 disabled="{!v.isSameContactByReturnRequest}"/>
+                                                
+
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+
+                                    <div>
+
+                                        <lightning:input name="input2-4"
+                                                         label="수취인 상세 주소"
+                                                         value="{!v.contactConsigneeInfo.ConsigneeDetailAddress}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input type="checkbox" label="결제자 정보와 동일"
+                                                         class="slds-m-top_small"
+                                                         value="{!v.isSameContactByReturnRequest}"
+                                                         checked="{!v.isSameContactByReturnRequest}"
+                                                         onchange="{!c.fnInitializeConsigneeInformation}"/>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <h2 class="slds-card__header-title">회수 부품 정보 </h2>
+
+                    <div class="slds-var-m-around_large">
+                        <lightning:datatable
+                                aura:id="returnDataTable"
+                                columns="{!v.returnOrderColumns}"
+                                data="{!v.productRequestLineItemsByReturnRequest}"
+                                keyField="Id"
+                                suppressBottomBar="true"
+                                oncellchange="{!c.fnChkReturnVal}"
+                                hideCheckboxColumn="true"
+                        />
+                    </div>
+
+                    <h2 class="slds-card__header-title">교환 부품 정보 </h2>
+
+                    <div class="slds-var-m-around_large">
+                        <lightning:datatable
+                                aura:id="returnDataTable"
+                                columns="{!v.returnOrderColumns}"
+                                data="{!v.productRequestLineItemsByReturnRequest}"
+                                keyField="Id"
+                                suppressBottomBar="true"
+                                oncellchange="{!c.fnChkReturnVal}"
+                                hideCheckboxColumn="true"
+                        />
+                    </div>
+                </div>
+
+                
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="취소" onclick="{!c.fnCloseExchangeModal}"/>
+                    <lightning:button variant="brand" label="교환부품 조회" onclick="{!c.fnShowConsumableOrder}"/>
+
+                    <lightning:button variant="brand" label="교환 요청" onclick="{!c.fnCloseExchangeModal}"/>
+                </footer>
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if> -->
+
+    <aura:if isTrue="{!v.showDeliveryInformationModal}">
+        <!--Lightning Spinner-->
+        <aura:if isTrue="{!v.showSpinner}">
+            <div>
+                <lightning:spinner variant="brand" alternativeText="Waiting" size="medium"/>
+            </div>
+        </aura:if>
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_small">
+
+            <div class="slds-modal__container slds-modal__container_small">
+                <!-- Header -->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseDeliveryInformationModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">배송/송장 정보</h2>
+                </header>
+
+                <!-- Content -->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+
+                    <div class="slds-var-m-around_large" style="height:300px">
+<!--                        <lightning:datatable-->
+<!--                                aura:id="returnDataTable"-->
+<!--                                columns="{!v.deliveryInformationOrderColumns}"-->
+<!--                                data="{!v.deliveryInformationData}"-->
+<!--                                keyField="Id"-->
+<!--                                suppressBottomBar="true"-->
+<!--                                hideCheckboxColumn="true"-->
+<!--                        />-->
+                        <c:EXWijmo aura:id="wijmo_EXdeliveryInfo" onmessage="{!c.onWijmoMessage}"
+                                   stub="{! 'EXdeliveryInfo'}" css="{! 'EXWijmoReconciled'}"/>
+                    </div>
+
+                </div>
+                <!-- Footer -->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseDeliveryInformationModal}"/>
+                </footer>
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <!-- <aura:if isTrue="{!v.showReturnOrderModal}">
+        
+
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_large">
+
+            <div class="slds-modal__container">
+        
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseReturnOrderModal}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">반품 요청</h2>
+                </header>
+
+
+        
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+                    <h2 class="slds-card__header-title">고객 정보</h2>
+
+                    <div style="display:flex; margin-left: 0 !important"
+                         class="gridWrap cBox ml_12 bgLightGray slds-p-around_medium">
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pr_24 pl_12">
+        
+                            <ul class="detailDataInner">
+        
+                                <div class="profileBoxTtl slds-m-right_medium">
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                </div>
+                                <li>
+                                    <div>
+                                        <lightning:input name="input1-1"
+                                                         readonly="true"
+                                                         label="고객명"
+                                                         value="{!v.contactConsigneeInfo.ContactName}"
+                                        />
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         label="전화번호"
+                                                         value="{!v.contactConsigneeInfo.ContactMobilePhone}"
+                                                         class="" readonly="true"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         readonly="true"
+                                                         label="고객주소"
+                                                         value="{!v.contactConsigneeInfo.ContactAddress}"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input name="input1-2"
+                                                         readonly="true"
+                                                         label="고객상세주소"
+                                                         value="{!v.contactConsigneeInfo.ContactDetailAddress}"/>
+                                    </div>
+                                    <div>
+
+                                    </div>
+                                    <div>
+                                        <aura:if isTrue="{!v.caseInfo.CaseId != null}">
+                                            <lightning:textarea name="input1" label="상담이력"
+                                                                class="text_area_height slds-m-top_x-large"
+                                                                value="{!v.caseDescriptionByReturnRequest}"
+                                                                disabled="true"
+                                            />
+                                        </aura:if>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="slds-col slds-size_6-of-12 detailInfoWrap pl_24 pr_12">
+                            
+                            <ul class="detailDataInner">
+
+                                <li>
+                                    <div>
+                                        <lightning:input name="input2-1"
+                                                         label="수취인명"
+                                                         value="{!v.contactConsigneeInfo.ConsigneeName}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"
+                                                         onchange="{!c.consigneeNameChange}"/>
+                                    </div>
+                                    <div>
+
+                                        <lightning:input name="input2-3"
+                                                         label="수취인 전화번호"
+                                                         value="{!v.contactConsigneeInfo.ConsigneePhone}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"
+                                                         onchange="{!c.fnPhoneChg}"/>
+                                    </div>
+                                    <aura:if isTrue="{!not(v.isSameContactByReturnRequest)}">
+                                        <div class="slds-grid">
+
+                                            <lightning:input name="input2-4"
+                                                             label="수취인 주소"
+                                                             value="{!v.newAddress}"
+                                                             disabled="true" class="width_80"/>
+                            
+
+
+                                            <lightning:button class="btn_tm" label="검색" title="검색"
+                                                              onclick="{!c.fnAddressSearch}"/>
+
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div>
+                                                <lightning:input name="input2-4"
+                                                                 label="수취인 주소"
+                                                                 value="{!v.contactConsigneeInfo.ConsigneeAddress}"
+                                                                 disabled="{!v.isSameContactByReturnRequest}"/>
+                            
+
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+
+                                    <div>
+
+                                        <lightning:input name="input2-4"
+                                                         label="수취인 상세 주소"
+                                                         value="{!v.contactConsigneeInfo.ConsigneeDetailAddress}"
+                                                         disabled="{!v.isSameContactByReturnRequest}"
+                                                         onchange="{!c.detailAddressChange}"/>
+                                    </div>
+                                    <div>
+                                        <lightning:input type="checkbox" label="결제자 정보와 동일"
+                                                         class="slds-m-top_small"
+                                                         value="{!v.isSameContactByReturnRequest}"
+                                                         checked="{!v.isSameContactByReturnRequest}"
+                                                         onchange="{!c.fnInitializeConsigneeInformation}"/>
+                                    </div>
+                                    <div>
+                                        <aura:if isTrue="{!v.caseInfo.CaseId != null}">
+                                            <lightning:textarea name="input1"
+                                                                class="text_area_height"
+                                                                value="{!v.appendRemarkByReturnRequest}"
+                                                                placeholder="상담이력 입력..."
+                                            />
+                                        </aura:if>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <aura:if isTrue="{!v.showSpinner}">
+                        <div class="slds-is-relative">
+                            <lightning:spinner variant="brand" alternativeText="Waiting" size="medium"/>
+                        </div>
+                    </aura:if>
+
+                    <h2 class="slds-card__header-title">주문 정보 </h2>
+                    <aura:if isTrue="{!v.hasPointAmount}">
+                        <p class="slds-text-align_right" style="color: red; font-weight: bold">* POINT 결제를 한 경우 수량 반품이
+                            불가 합니다.</p>
+                    </aura:if>
+                    <lightning:input type="checkbox" label="반품사유동일"
+                                     class="slds-m-top_small slds-text-align_right"
+                                     value="{!v.isSameReturnRequestReason}"
+                                     checked="{!v.isSameReturnRequestReason}"/>
+                    <div class="slds-var-m-around_large">
+                        <lightning:datatable
+                                aura:id="returnDataTable"
+                                columns="{!v.returnOrderColumns}"
+                                data="{!v.productRequestLineItemsByReturnRequest}"
+                                keyField="Id"
+                                suppressBottomBar="true"
+                                oncellchange="{!c.fnChkReturnVal}"
+                                hideCheckboxColumn="true"
+                        />
+                    </div>
+
+                    
+                    <aura:if isTrue="{!v.isCIC}">
+                        <aura:if isTrue="{!v.isVBANKRefund == false}">
+                            <h2 class="slds-card__header-title" style="margin-top: 25px;">가상계좌 환불정보</h2>
+                            <div class="slds-var-m-around_large">
+                                <lightning:input label="예금주명" value="{!v.receiverName}" placeholder="홍길동"
+                                                 disabled="{!v.isVBANKRefund}" class="slds-size_4-of-12"/>
+                                <lightning:select aura:id="select_bank_code" label="은행코드" value="{!v.bankCode}"
+                                                  disabled="{!v.isVBANKRefund}" class="slds-size_4-of-12">
+                                    <aura:iteration items="{!v.bankOptions}" var="option">
+                                        <option text="{!option.label}" value="{!option.value}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <lightning:input label="계좌번호" value="{!v.bankAccountNo}" placeholder="XXXXXX-YY-ZZZZZC"
+                                                 disabled="{!v.isVBANKRefund}" class="slds-size_4-of-12"/>
+                                <div class="slds-size_2-of-12" style="margin-top:10px;">
+                                    <lightning:button variant="neutral" label="계좌검증" onclick="{!c.fnCheckBankAccount}"
+                                                      disabled="{!v.isVBANKRefund}"/>
+                                </div>
+                            </div>
+                        </aura:if>
+                    </aura:if>
+                </div>
+
+                
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="취소" onclick="{!c.fnCloseReturnOrderModal}"/>
+                    <lightning:button variant="brand" label="반품 요청" onclick="{!c.fnRequestReturnOrder}" disabled="{!v.showSpinner}"/>
+                </footer>
+            </div>
+        </section>
+
+>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if> -->
+    <!-- Public Model 모달 -->
+    {!v.modalContent}
+
+    <!--카카오톡 모달-->
+    <!-- <aura:if isTrue="{!v.kakaoModal}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-id" aria-modal="true"
+                 aria-describedby="modal-content-id" class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container" style="width: 30% !important">
+                
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" size="small" alternativeText="Close"
+                                          variant="bare-inverse" class="slds-modal__close"
+                                          onclick="{!c.fnCloseKakao}"/>
+                    <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">알림톡 전송</h2>
+                </header>
+
+                
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id">
+                    <h2 class="slds-card__header-title">알림톡 정보</h2>
+                    <div class="slds-var-m-around_large">
+                        <lightning:input label="수신자 핸드폰번호" value="{!v.receiverNumber}"
+                                         onchange="{!c.fnPhoneChg2}" class="slds-size_4-of-12"/>
+                    </div>
+
+                    <div class="slds-var-m-around_large">
+                        <lightning:textarea name="input0" label="알림톡 메세지"
+                                            value="{!v.receiverMsg}"
+                                            class="textarea_height"
+                                            disabled="true"/>
+                    </div>
+                </div>
+
+                
+                <footer class="slds-modal__footer">
+                    <div class="slds-col_bump-left">
+                        <lightning:button label="보내기" variant="brand" onclick="{!c.fnReSendKakao}"/>
+                        <lightning:button variant="neutral" label="닫기" onclick="{!c.fnCloseKakao}"/>
+                    </div>
+                </footer>
+            </div>
+        </section>
+
+        
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if> -->
+</aura:component>

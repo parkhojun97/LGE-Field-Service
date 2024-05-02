@@ -1,0 +1,21 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-01-19.
+ -->
+
+<aura:component description="EX_ConsumableBase"
+                extensible="true"
+                access="public"
+                controller="EX_ConsumableService">
+
+
+    <aura:attribute name="IsConsumableManagementTeam" type="Boolean" default="false" description="현재 유저의 소모품 사업지원팀 여부"/>
+    <aura:attribute name="IsConsultant" type="Boolean" default="false" description="현재 유저의 상담사 여부"/>
+    <aura:attribute name="IsCenterPartsManager" type="Boolean" default="false" description="현재 유저의 서비스센터 부품담당자 여부"/>
+    <aura:attribute name="ServiceResource" type="Map" default="{}" description="현재 ServiceResource 의 정보"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+
+    {!v.body}
+
+</aura:component>

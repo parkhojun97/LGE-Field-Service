@@ -1,0 +1,24 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2022-12-22.
+ -->
+
+<aura:event type="APPLICATION" description="EX_SuppliesPartContact_evt">
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="contactId" type="String" />
+    <aura:attribute name="consigneeName" type="String" />
+    <aura:attribute name="IbCallNo" type="String" />
+    <aura:attribute name="newAddress" type="String" />
+    <aura:attribute name="detailAddress" type="String" />
+    <aura:attribute name="requestedTerm" type="String" />
+    <aura:attribute name="remark" type="String" />
+    <aura:attribute name="isContactSame" type="Boolean" />
+    <aura:attribute name="phoneCol" type="String" />
+    <aura:attribute name="zoneCode" type="String" />
+    <aura:attribute name="managerNote" type="String" />
+    <aura:attribute name="partTabId" type="String" />
+    <aura:attribute name="ContactVIP" type="Decimal"  description="해당 고객 VIP 할인율"/>
+    <aura:attribute name="isCreateOrder" type="Boolean" default="false" description="상담 sub Tab 및 일반 소모품 flag" />
+    <aura:attribute name="isExchangeConInfo" type="Boolean" default="false" description="교환요청 분기" />
+
+
+</aura:event>

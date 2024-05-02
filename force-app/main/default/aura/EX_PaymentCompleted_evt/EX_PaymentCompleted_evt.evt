@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_PaymentCompleted_evt">
+    <aura:attribute name="isReadyToGo" type="Boolean" />
+</aura:event>

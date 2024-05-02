@@ -1,0 +1,112 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-01-04.
+ -->
+
+<aura:component
+        controller="EX_IntegrationOrderManagementController"
+        description="EX_IntegrationOrderDetail">
+
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    <aura:handler name="change" value="{!v.consumableOrderNumber}" action="{!c.fnOrderLineItemData}"/>
+
+    <!-- 선택한 소모품 주문 Data 인입     -->
+    <aura:handler event="c:EX_ConsumableOrderList_evt" action="{!c.fnGetOrderData}"/>
+
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="mapSearchParam" type="Map" default="{}"/>
+    <aura:attribute name="consumableOrderNumber" type="String"/>
+
+    <aura:attribute name="productRequest" type="Map" default="{}"/>
+    <aura:attribute name="parent" type="Map" default="{}"/>
+
+
+
+    <div class="slds-grid">
+        <lightning:card class="slds-col" title="주문 번호" aura:id="cardTitle">
+            <aura:set attribute="actions">
+                <lightning:buttonGroup>
+                    <!--                        <lightning:button title="주문 취소" label="주문 취소" onclick="{!c.fnWholeInventoryPop}"/>-->
+                    <!--                        <lightning:button title="결제URL 재전송" label="결제URL 재전송" onclick="{!c.fnClear}"/>-->
+                    <!--                        <lightning:button title="견적/명세서 정보" label="견적/명세서 정보" onclick="{!c.fnClear}"/>-->
+                </lightning:buttonGroup>
+            </aura:set>
+            <aura:set attribute="body">
+                <div class="gridSlaveInner" style="height: 280px">
+                    <div class="c-container">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true" class="x-large">
+                            <lightning:layoutItem size="3" padding="around-small" class="custom-box">
+                                주문 정보
+                                <lightning:layout multipleRows="true" class="slds-p-around_xx-small">
+                                    <lightning:layoutItem>
+                                        <div class="slds-grid">
+                                            <lightning:input name="custNm" label="주문입력자" value="{! v.parent.createdByName}"
+                                                             class="inputTaLabelPosLeft" readonly="true"/>
+                                        </div>
+                                        <div class="slds-grid">
+                                            <div class="slds-col">
+                                                <lightning:input name="custNm" label="고객명" value="{! v.parent.contactName}"
+                                                                 class="inputTaLabelPosLeft" readonly="true"/>
+                                            </div>
+                                            <div class="slds-col">
+                                                <lightning:input name="custPhone" label="수취인명"
+                                                                 value="{! v.parent.contactName}"
+                                                                 class="inputTaLabelPosLeft" readonly="true"/>
+                                            </div>
+                                        </div>
+                                        <div class="slds-grid">
+                                            <div class="slds-col">
+                                                <lightning:input name="custNm" label="고객 전화번호"
+                                                                 value="{! v.parent.contactPhone}"
+                                                                 class="inputTaLabelPosLeft" readonly="true"/>
+                                            </div>
+                                            <div class="slds-col">
+                                                <lightning:input name="custPhone" label="수취인 전화번호"
+                                                                 value="{! v.parent.contactPhone}"
+                                                                 class="inputTaLabelPosLeft" readonly="true"/>
+                                            </div>
+                                        </div>
+                                        <div class="slds-grid">
+                                            <lightning:input name="custAddress" label="수취인 주소"
+                                                             value="{! v.objCont.fm_ADDRESS_NEW__c}"
+                                                             class="inputTaLabelPosLeft"
+                                                             readonly="true"/>
+                                        </div>
+                                        <div class="slds-grid">
+                                            <lightning:input name="custAddress" label="배송메시지"
+                                                             value="{! v.objCont.ADDRESS_DETAIL__c}"
+                                                             class="inputTaLabelPosLeft"
+                                                             readonly="true"/>
+                                        </div>
+                                        <div class="slds-grid">
+                                            <lightning:textarea name="input0" label="상담 내용" class="inputTaLabelPosLeft width_80"
+                                                                value="{!v.requestedTerm}"
+                                                                placeholder=" "
+
+                                                                />
+                                        </div>
+                                        <div class="slds-grid">
+                                            <lightning:textarea name="input1" label="관리자메모" class="inputTaLabelPosLeft width_80"
+                                                                value="{! v.remark}" placeholder=" "
+                                                                />
+                                        </div>
+                                    </lightning:layoutItem>
+
+                                </lightning:layout>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-small" class="custom-box">
+                                결제 정보
+
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-small" class="custom-box">
+                                배송/취소
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="3" padding="around-small" class="custom-box">
+                                교환/반품
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                </div>
+            </aura:set>
+        </lightning:card>
+    </div>
+</aura:component>

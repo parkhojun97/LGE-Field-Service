@@ -1,0 +1,397 @@
+<!--
+  Created by I2MAX.SEOKHOLEE on 2022/12/25.
+-->
+
+<aura:component controller="EX_SuppliesController" description="SC_SuppliesPart">
+    <aura:html tag="style">.toastMessage.forceActionsText{
+        white-space : pre-line !important;
+        }
+    </aura:html>
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+
+    <!-- 고객 정보 변경 시 소모품 주문에 저장되야 할 Data Event 등록    -->
+    <aura:registerEvent name="EX_SuppliesConsigneeEvt" type="c:EX_SuppliesConsigneeEvt"/>
+    <aura:registerEvent name="EX_SuppliesPartContact_evt" type="c:EX_SuppliesPartContact_evt"/>
+    <aura:handler event="c:EX_SuppliesPartCaseContact_evt" action="{!c.getconsignee}" />
+    <aura:registerEvent name="EX_SuppliesPartCaseContact_evt" type="c:EX_SuppliesPartCaseContact_evt"/>
+
+    
+
+    <!-- 상담사가 입력한 상담 이력 내용 -->
+    <aura:registerEvent name="EX_SuppliesPartRemark_evt" type="c:EX_SuppliesPartRemark_evt"/>
+
+    <aura:registerEvent name="SplitViewEvent" type="c:EX_SplitView_evt"/>
+
+    <!-- 23.02.23 I2MAX.SEOKHOLEE 추가 -->
+    <aura:attribute name="isExchangeOrder" type="Boolean" description="소모품 주문 화면의 분기 처리 용도, 일반 주문과 교환 주문에 따른 화면 분기"/>
+
+    <!-- 23.03.01 I2MAX.SEOKHOLEE 추가 -->
+    <aura:attribute name="FSIsMaterialPortal" type="Boolean" default="false"
+                    description="소모품 주문 화면의 자재포탈 인입여부 판단 Flag 필드"/>
+    <aura:attribute name="modalContent" type="Aura.Component[]"/>
+    
+
+    <lightning:utilityBarAPI aura:id="utilitybar" />
+
+    <!-- 전역 변수 -->
+    <aura:attribute name="selectedCenter" type="Object" default="{}"/>
+    <aura:attribute name="FSContactId" type="String" default="" description="자재포탈에서의 고객(Contact) ID"/>
+
+    <aura:attribute name="contactId" type="String" default="" description="고객(Contact) ID"/>
+    <aura:attribute name="objCont" type="Contact"/>
+    <aura:attribute name="objPartInfo" type="Object"/>
+    <aura:attribute name="objCase" type="Case"/>
+    <aura:attribute name="currTabId" type="String" default="logistics"/>
+    <aura:attribute name="strTabId" type="String" description="parent Tap id (이벤트 구분용)"/>
+    <aura:attribute name="listOrder" type="List" description="SC_SuppliesOrderList의 데이터(주문목록)"/>
+    <aura:attribute name="caseNumber" type="String" description="상담이력(Case)의 상담번호"/>
+    <aura:attribute name="ContactVIP" type="Decimal"  description="해당 고객 VIP 할인율"/>
+
+    <aura:attribute name="isContactSame" type="Boolean" default="true" description="주문 고객과 수취인 동일 여부"/>
+    <aura:attribute name="isContactSameStr" type="String" default="true" description="주문 고객과 수취인 동일 여부"/>
+    <aura:attribute name="consigneeName" type="String" description="수취인 이름"/>
+    <aura:attribute name="IbCallNo" type="String" description="수취인 전화번호"/>
+    <aura:attribute name="requestedTerm" type="String" description="요청 사항"/>
+
+    <aura:attribute name="caseDescription" type="String" description="기존 상담 이력"/>
+    <aura:attribute name="remark" type="String" description="특이 사항 | 상담이력"/>
+    <aura:attribute name="managerNote" type="String" description="관리자 메모"/>
+
+    <aura:attribute name="phoneCol" type="String" description="수취인 전화번호 색깔" default="color:black"/>
+
+    <aura:attribute name="consigneeAddress" type="String" description="수취인 주소"/>
+    <aura:attribute name="consigneeDetailAddress" type="String" description="수취인 상세 주소"/>
+
+    <aura:attribute name="parseFee" type="Decimal" description="최소 주문 금액"/>
+
+    <!-- 23.03.23 소모품택배주문 -> 고객조회 전달용 Contact info -->
+    <aura:attribute name="IbCallNo_SC" type="Decimal" description="고객 전화번호 / 상담전달용 "/>
+    <aura:attribute name="searchName_SC" type="Decimal" description="고객 이름 / 상담전달용 "/>
+    <aura:attribute name="caseModelId" type="String" description="케이스에서 인입된 Model Id"/>
+    <aura:attribute name="caseModelLabel" type="String" description="케이스에서 인입된 Model Label"/>
+
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:navigation     aura:id="navService" />
+    <lightning:navigationItemAPI aura:id="navigationItemAPI"/>
+
+    <!--주소 찾기 Attribute-->
+    <aura:attribute name="newAddress" type="String"/>
+    <aura:attribute name="oldAddress" type="String"/>
+    <aura:attribute name="detailAddress" type="String"/>
+    <aura:attribute name="zoneCode" type="String"/>
+    <aura:attribute name="latitude" type="String"/>
+    <aura:attribute name="longitude" type="String"/>
+    <aura:attribute name="conOpen" type="Boolean" default="true"/>
+
+    <!--교환수취인 Attribute-->
+    <aura:attribute name="excgConsAddress" type="String"/>
+    <aura:attribute name="excgConsdetail" type="String"/>
+    <aura:attribute name="excgConsName" type="String"/>
+    <aura:attribute name="excgConsPhone" type="String"/>
+    
+    <aura:attribute name="tabId" type="String"/>
+
+    <aura:attribute name="consertConId" type="String"/>
+    <aura:attribute name="consertObjCont" type="Contact"/>
+    
+    <aura:attribute name="vfHost" type="String"/>
+
+    <aura:handler name="change" value="{!v.currTabId}" action="{!c.fnTabSelect}"/>
+
+    <!-- 고객 정보 변경 시 소모품 주문에 저장되야 할 Data Event fire    -->
+    <!-- <aura:handler name="change" value="{!v.contactId}" action="{!c.fnContactChange}"/>
+    <aura:handler name="change" value="{!v.objCont}" action="{!c.fnContactChange}"/> -->
+    <aura:handler name="change" value="{!v.productRequestId}" action="{!c.fnContactChangeFromExchangeOrder}"/>
+
+    <aura:handler name="change" value="{!v.newAddress}" action="{!c.contactConsigneeChange}"/>
+    <aura:handler name="change" value="{!v.zoneCode}" action="{!c.contactConsigneeChange}"/>
+    <!-- <aura:handler name="change" value="{!v.detailAddress}" action="{!c.contactConsigneeChange}"/>
+    <aura:handler name="change" value="{!v.isContactSame}" action="{!c.contactConsigneeChange}"/> -->
+
+    <aura:handler event="c:EX_CustomerSearchResultEvt" action="{!c.fnGetCustomerSearchResult}"/>
+
+    <aura:handler event="c:CM_Address_evt"         action="{!c.fnGetAddress}"  />
+
+    <aura:attribute name="isSplitOpened" type="Boolean" default='false'/>
+    <aura:handler event="c:EX_SplitView_SearchParts_evt" action="{!c.fnHandleSplitViewEvent}"/>
+
+    <!-- 23.07.20 이건우 Param추가 -->
+    <aura:attribute name="hasPointAmount" type="Boolean" default="false" description="교환요청시 교환요청건의 포인트금액/결제 여부"/>
+    <!-- 2023.08.28 seung yoon Param추가 -->
+    <aura:attribute name="hasOBSCHNL" type="Boolean" default="false" description="교환요청시 교환요청건의 주문 채널 여부"/>
+     <!-- 2023.10.11 seung yoon Param추가 -->
+     <aura:attribute name="isFromCase" type="Boolean" default="true" description="상담포털 여부"/>
+     <aura:attribute name="isFromCase2" type="Boolean" default="false" description="상담포털 여부"/>
+
+
+    <!-- 23.02.27 / 소모품 교환 주문 데이터(회수부품정보) -->
+    <aura:attribute name="exchangeReturnOrderData" type="List" default="[]" description="소모품 원 주문 품목 데이터(회수부품정보)"/>
+    <aura:attribute name="productRequestId" type="String" default="" description="재 조회용 교환주문시 원 주문의 Id"/>
+    {!v.modalContent}
+    <div class="wrapFlex sectionTop" style="padding:0px">
+        <ul class="flex1" style="width: calc(100% - 437px) !important; height:100%">
+            <aura:if isTrue="{!v.isExchangeOrder}">
+                <li style="height:35%; overflow:auto">
+                    <c:EX_SuppliesExchangePart exchangeReturnOrderData="{!v.exchangeReturnOrderData}"
+                                               objPartInfo="{!v.objPartInfo}" objCont="{!v.objCont}"
+                                               contactId="{!v.contactId}" productRequestId="{!v.productRequestId}"
+                                               hasPointAmount="{!v.hasPointAmount}"
+                                               hasOBSCHNL="{!v.hasOBSCHNL}"
+                                               
+                                               />
+                </li>
+            </aura:if>
+            <li style="{!v.isExchangeOrder == true ? 'height: 65%; overflow:auto' : 'height: 100%'}"
+                class="{!v.isExchangeOrder ? 'slds-m-top_x-small' : ''}">
+                <c:EX_SuppliesPartTabLogistics aura:id="logisticsTab"
+                                               objPartInfo="{!v.objPartInfo}"
+                                               objCont="{!v.objCont}"
+                                               strTabId="{!v.strTabId}"
+                                               parseFee="{!v.parseFee}"
+                                               isExchangeOrder="{!v.isExchangeOrder}"/>
+            </li>
+        </ul>
+        <!--        </div>-->
+        <!--            </lightning:layoutItem>-->
+        <!-- CSS 수정 시작 -->
+        <!--        <div class="slds-col slds-p-top_xxx-small slds-size_1-of-3 slds-m-left_xx-small slds-m-right_xx-small scrollable"-->
+        <!--             >-->
+        <!--            <lightning:layoutItem size="4" class="slds-p-around_xx-small" flexibility="auto">-->
+        <aura:if isTrue="{!v.conOpen}">
+            <div style="width:437px;" class="gridWrap cBox ml_12 bgLightGray ">
+                <!--Title Wrap Start-->
+                <ul class="gridHeaderWrap  ">
+                    <li class="gridHeaderTtl">고객정보
+                        <aura:if
+                                isTrue="{! AND(v.caseNumber, AND(!empty(v.objCase), v.objCase.ContactId == v.objCont.Id))}">
+                            <div style="font-size:12px; display:inline; margin-top: auto;">상담 번호
+                                : {!v.caseNumber}</div>
+                        </aura:if>
+                    </li>
+
+                    <li class="gridHeaderBtnWrap">
+                        <aura:if isTrue="{!not(v.isExchangeOrder)}">
+                            <aura:if isTrue="{!v.isFromCase}">
+                                <lightning:button class="gridSlaveBtnDisabled" aura:id="bulkRelease" label="고객조회" title="고객조회"
+                                                onclick="{!c.fnCustomerSearch}" disabled="{!v.isFromCase}" />
+                            <aura:set attribute="else">
+                                <lightning:button aura:id="bulkRelease" label="고객조회" title="고객조회"
+                                                onclick="{!c.fnCustomerSearch}" disabled="{!v.isFromCase}"/>
+                            </aura:set>
+                        </aura:if>
+                        </aura:if>
+                        <lightning:buttonIcon iconName="utility:chevronright" variant="border-filled"
+                                              alternativeText="Closed" title="Closed" onclick="{!c.conInfoOpen}"/>
+                    </li>
+                </ul>
+                <!--Title Wrap End-->
+                <!--고객정보 Detail Start-->
+                <div class="profileWrap">
+                    <ul>
+                            <aura:if isTrue="{!not(v.isExchangeOrder)}">
+
+                                <li class="checkBoxWrap">
+                                    <lightning:input aura:id="sameAddress"
+                                                    type="checkbox"
+                                                    label="결제자 정보와 동일"
+                                                    checked="{!v.isContactSame}"
+                                                    onchange="{!c.fnSameAddress}"
+                                                    value="{!v.isContactSame}"
+                                    />
+                                
+                                </li>
+                                <aura:set attribute="else">
+                                    <li class="checkBoxWrap">
+                                        <lightning:input aura:id="sameAddress"
+                                                        type="checkbox"
+                                                        label="원주문 정보와 동일"
+                                                        checked="{!v.isContactSame}"
+                                                        onchange="{!c.fnSameAddress}"
+                                                        value="{!v.isContactSame}"
+                                        />
+                                    
+                                    </li>
+                                </aura:set>
+                            </aura:if>
+                        <!--결제자 start-->
+                        <li class="profileBox boxGray mt_12">
+                            <div class="profileBoxTtl">결제자</div>
+                            <ul class="profItemWrap">
+                                <li>
+                                    <lightning:input name="input1" label="고객명" readonly="true"
+                                                     value="{!v.objCont.Name}"/>
+                                </li>
+                                <li>
+                                    <lightning:input name="input1" label="전화번호" readonly="true"
+                                                     value="{!v.objCont.MobilePhone}"/>
+                                </li>
+                                <li>
+                                    <lightning:input name="input1" label="주소" readonly="true"
+                                                     value="{!empty(v.objCont.fm_ADDRESS_NEW__c) ? v.objCont.fm_ADDRESS_OLD__c : v.objCont.fm_ADDRESS_NEW__c}"/>
+                                </li>
+
+                            </ul>
+                        </li>
+                        <!--결제자 End-->
+                        <!-- 교환 받는분 start -->
+                        <aura:if isTrue="{!v.isExchangeOrder}">
+                            <aura:if isTrue="{!v.isContactSame}">
+                                <li class="profileBox">
+                                    <div class="profileBoxTtl">받는분</div>
+                                    <ul class="profItemWrap">
+                                        <li>
+                                            <lightning:input 
+                                                            type="text" value="{!v.excgConsName }"
+                                                            label="고객명" readonly="true"
+                                                            />
+                                        </li>
+                                        <li>
+                                            <lightning:input 
+                                                            type="text" value="{! v.excgConsPhone }"
+                                                            label="전화번호" readonly="true"
+                                                            />
+                                        </li>
+                                        <li class="wrapFlex">
+                                            <lightning:input 
+                                                            type="text" value="{!v.excgConsAddress }" label="주소"
+                                                            readonly="true"/>
+                                        </li>
+                                        <li>
+                                            <lightning:input 
+                                                            type="text" value="{!v.excgConsdetail}" label="상세주소" readonly="true"
+                                                            />
+                                        </li>
+                                    </ul>
+                                </li>
+                            </aura:if>
+                        </aura:if>
+                        <!--받는분 start-->
+                        <aura:if isTrue="{!not(v.isContactSame)}">
+                            <li class="profileBox">
+                                <div class="profileBoxTtl">받는분</div>
+                                <ul class="profItemWrap">
+                                    <li>
+                                        <lightning:input aura:id="consigneeName"
+                                                         type="text" value="{!v.consigneeName }"
+                                                         label="고객명" readonly="{!v.isContactSame}"
+                                                         onchange="{!c.contactConsigneeChange}"/>
+                                    </li>
+                                    <li>
+                                        <lightning:input aura:id="IbCallNo"
+                                                         type="text" value="{! v.IbCallNo }"
+                                                         label="전화번호" readonly="{!v.isContactSame}"
+                                                         onchange="{!c.fnPhoneChg}"/>
+                                    </li>
+                                    <li class="wrapFlex">
+                                        <lightning:input aura:id="newAddress"
+                                                         type="text" value="{!v.newAddress }" label="주소"
+                                                         readonly="true"/>
+                                        <lightning:button label="검색" title="검색" onclick="{!c.fnAddressSearch}"
+                                                          disabled="{!v.isContactSame}" class="btn_tm"/>
+                                    </li>
+                                    <li>
+                                        <lightning:input aura:id="detailAddress"
+                                                         type="text" value="{!v.detailAddress}" label="상세주소"
+                                                         onchange="{!c.fnDetailAddressChg}"/>
+                                    </li>
+                                </ul>
+                            </li>
+                        </aura:if>
+                        <!--받는분 End-->
+                        <aura:if isTrue="{!v.caseNumber != null}">
+                            <!--상담이력 start-->
+                            <li>
+                                <lightning:textarea value="{!v.caseDescription}" onblur="{!c.fnSaveRemark}" label="상담이력"
+                                                    disabled="true"/>
+                            </li>
+                            <li>
+                                <lightning:textarea aura:id="remark"
+                                                    value="{!v.remark}" onblur="{!c.fnSaveRemark}" label="상담이력"
+                                                    placeholder="상담이력 입력..."
+                                                    disabled="{!v.caseNumber == null ? true : false}"/>
+                            </li>
+                            <!--상담이력 End-->
+                        </aura:if>
+                        <!--배송메시지 start-->
+                        <li>
+                            <lightning:textarea aura:id="requestedTerm"
+                                                value="{!v.requestedTerm}" onchange="{!c.fnTermChg}" label="배송메시지"/>
+                        </li>
+                        <!--배송메시지 End-->
+                        <!-- 관리자메모 start-->
+                        <aura:if isTrue="{!not(v.isFromCase2)}">
+                            <li>
+                                <lightning:textarea aura:id="managerNote"
+                                                    value="{!v.managerNote}" onchange="{!c.fnTermChg}" label="관리자메모" disabled="{!v.isFromCase2}"
+                                                    placeholder="제품 모델명 및 색상 입력..."/>
+                            </li>
+                        </aura:if>
+                        <!--관리자메모 End-->
+
+                    </ul>
+
+                </div>
+                <!--고객정보 Detail End-->
+            </div>
+            <aura:set attribute="else">
+                <div class="gridWrap cBox ml_12 padi12 bgLightGray">
+                    <ul class="gridHeaderWrap">
+                        <li class="gridHeaderBtnWrap">
+                            <lightning:buttonIcon iconName="utility:chevronleft" variant="border-filled"
+                                                  alternativeText="Open" title="Open" onclick="{!c.conInfoOpen}"/>
+                                                  <!-- 12.20 seung yoon heo 화면옆으로 넘겼을시 값 저장용 cmp -->
+                                                  <lightning:input aura:id="sameAddressStr"
+                                                  style="visibility: hidden; position: absolute;"
+                                                  type="text"
+                                                  label="결제자 정보와 동일"
+                                                  value="{!v.isContactSameStr}"
+                                                  />
+                                                  <lightning:input aura:id="consigneeNameStr"
+                                                          style="visibility: hidden; position: absolute;"
+                                                          type="text" value="{!v.consigneeName }"
+                                                          label="고객명" readonly="{!v.isContactSame}"
+                                                          onchange="{!c.contactConsigneeChange}"/>
+                                                  <lightning:input aura:id="IbCallNoStr"
+                                                          style="visibility: hidden; position: absolute;"
+                                                          type="text" value="{! v.IbCallNo }"
+                                                          label="전화번호" readonly="{!v.isContactSame}"
+                                                          onchange="{!c.fnPhoneChg}"/>
+                                                  <lightning:input aura:id="newAddressStr"
+                                                          style="visibility: hidden; position: absolute;"
+                                                          type="text" value="{!v.newAddress }" label="주소"
+                                                          readonly="true"/>
+                                                  <lightning:input aura:id="detailAddressStr"
+                                                          style="visibility: hidden; position: absolute;"
+                                                          type="text" value="{!v.detailAddress}" label="상세주소"
+                                                          onchange="{!c.fnDetailAddressChg}"/>
+                                                  <lightning:textarea aura:id="remarkStr"
+                                                          style="visibility: hidden; position: absolute;"
+                                                          value="{!v.remark}" onblur="{!c.fnSaveRemark}" label="상담이력"
+                                                          placeholder="상담이력 입력..."
+                                                          disabled="{!v.caseNumber == null ? true : false}"/>
+                                                  <lightning:textarea aura:id="managerNoteStr"
+                                                          style="visibility: hidden; position: absolute;"
+                                                          value="{!v.managerNote}" onchange="{!c.fnTermChg}" label="관리자메모" disabled="{!v.isFromCase2}"
+                                                          placeholder="제품 모델명 및 색상 입력..."/>
+                                                  <lightning:textarea aura:id="requestedTermStr"
+                                                          style="visibility: hidden; position: absolute;"
+                                                          value="{!v.requestedTerm}" onchange="{!c.fnTermChg}" label="배송메시지"/>
+                        </li>
+                    </ul>
+                </div>
+            </aura:set>
+        </aura:if>
+   
+        <!--고객정보 Open End-->
+        <!--고객정보 Closed start-->
+
+    </div>
+
+
+<!--    <div style="height:0 !important; width:0 !important; border:0;border:none;visibility:hidden !important; padding:0px">-->
+<!--        <iframe id="vfFrame" aura:id="vfFrame"-->
+<!--                src="{! 'https://' + v.vfHost + '/apex/DaumAddress'}"/>-->
+<!--    </div>-->
+
+</aura:component>

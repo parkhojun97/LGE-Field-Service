@@ -1,0 +1,114 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-02-24.
+ -->
+
+<aura:component description="EX_SuppliesExchangePart" controller="EX_SuppliesController">
+
+    <aura:attribute name="draftValues" type="Object" default="[]"/>
+    <aura:attribute name="modalContent" type="Aura.Component"/>
+
+    <aura:attribute name="objSelected" type="Object"/>
+
+    <!-- 23.02.23 I2MAX.SEOKHOLEE 추가 -->
+    <aura:attribute name="isExchangeOrder" type="Boolean" description="소모품 주문 화면의 분기 처리 용도, 일반 주문과 교환 주문에 따른 화면 분기"/>
+
+    <aura:registerEvent name="EX_SuppliesExchangePart_evt" type="c:EX_SuppliesExchangePart_evt" />
+
+    <!-- Datatable -->
+    <aura:attribute name="columns" type="List" default="[]"/>
+    <aura:attribute name="exchangeReturnOrderData" type="List" default="[]" description="소모품 원 주문 품목 데이터(회수부품정보)"/>
+    <aura:attribute name="listSelectRows" type="List" default="[]" description="선택한 selecteRows"/>
+
+
+
+    <aura:attribute name="consumableHeaderValues" type="Map" description="소모품 주문 저장을 위한 소모품 주문 정보"/>
+    <aura:attribute name="parseFee" type="Decimal" description="최소주문금액"/>
+
+    <aura:attribute name="bulkOrderManager" type="Boolean" description="대량 주문 담당자 여부"/>
+    <aura:attribute name="costLimitManager" type="Boolean" description="최소 주문 금액 담당자 여부"/>
+
+    <!--  고객정보  -->
+    <aura:attribute name="objCont" type="Contact" access="global"/>
+    <aura:attribute name="contactId" type="String" description="소모품 주문 고객"/>
+
+
+    <aura:attribute name="consigneeName" type="String" description="수취인 이름"/>
+    <aura:attribute name="IbCallNo" type="String" description="수취인 전화번호"/>
+    <aura:attribute name="newAddress" type="String"/>
+    <aura:attribute name="detailAddress" type="String"/>
+    <aura:attribute name="requestedTerm" type="String" description="요청 사항"/>
+    <aura:attribute name="remark" type="String" description="특이 사항 | 상담 이력"/>
+    <aura:attribute name="isContactSame" type="Boolean" default="true" description="주문 고객과 수취인 동일 여부"/>
+    <aura:attribute name="phoneCol" type="String" default="a" description="전화번호 형식 검사용"/>
+
+    <aura:attribute name="selectField" type="String" default=""/>
+    <aura:attribute name="showSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="orderTotal" type="Decimal" default="0"/>
+
+
+    <aura:attribute name="objPartInfo" type="Map" default="{}"/>
+
+    <aura:attribute name="ChannelTypeCode" type="String" default="" description="소모품 주문 채널 코드"/>
+    <aura:attribute name="hasPointAmount" type="Boolean" default="false" description="교환요청시 교환요청건의 포인트금액/결제 여부"/>
+    <aura:attribute name="hasOBSCHNL" type="Boolean" default="false" description="교환요청시 교환요청건의 주문 채널 여부"/>
+
+    <aura:attribute name="customerPrice" type="String" default="" description="선택한 회수부품의 소비자가"/>
+    <aura:attribute name="productRequestId" type="String" default="" description="재 조회용 교환주문시 원 주문의 Id"/>
+    <!-- 23.05.22 추가 -->
+    <aura:attribute name="originConsumerPrice" type="String" default="" description="선택한 회수부품의 주문 당시의 소비자가"/>
+    <aura:attribute name="originProductId" type="String" default="" description="선택한 회수부품의 주문 부품 Id"/>
+
+    <!--Handler[S]-->
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+
+    <!-- Spinner -->
+    <aura:if isTrue="{!v.showSpinner}">
+        <lightning:spinner size="medium" variant="brand"/>
+    </aura:if>
+
+
+    <div style="height:179px;" class="mb_12">
+        <div style="height:100%;" class="gridWrap cBox bgWhite">
+            <!--Title Wrap Start-->
+            <ul class="gridHeaderWrap">
+                <li class="gridHeaderTtl">회수부품정보</li>
+                <li class="gridHeaderBtnWrap">
+                </li>
+            </ul>
+            <!--Title Wrap End-->
+            <!--DataTable Warp Start-->
+<!--           75%      임시 수정 -->
+            <div style="height: 132px;">
+<!--                <lightning:datatable-->
+<!--                        aura:id="returnDataTable"-->
+<!--                        columns="{!v.columns}"-->
+<!--                        data="{!v.exchangeReturnOrderData}"-->
+<!--                        keyField="Id"-->
+<!--                        onrowselection="{!c.fnSelected}"-->
+<!--                        maxRowSelection="1"-->
+<!--                        oncellchange="{!c.fnChkReturnVal}"-->
+<!--                        suppressBottomBar="true"-->
+<!--                        onrowaction="{!c.fnHandleRowAction}"-->
+<!--                        selectedRows="{!v.listSelectRows}"-->
+<!--                        showRowNumberColumn="false"-->
+<!--                />-->
+
+            <aura:if isTrue="{!or(v.hasPointAmount, v.hasOBSCHNL)}">
+                <c:EXWijmo aura:id="wijmo_EXexchangeDisabledReturnOrder"  onmessage="{!c.onWijmoMessage}"
+                       stub="{! 'EXexchangeDisabledReturnOrder'}" css="{! 'EXWijmoReconciled'}"/>
+                <aura:set attribute="else">
+                    <c:EXWijmo aura:id="wijmo_EXexchangeReturnOrder"  onmessage="{!c.onWijmoMessage}"
+                               stub="{! 'EXexchangeReturnOrder'}" css="{! 'EXWijmoReconciled'}"/>
+                </aura:set>
+            </aura:if>
+            </div>
+            <!--DataTable Warp End-->
+            <!--Bottom Wrap Start-->
+            <div class="gridMasterBtnWrap">
+
+
+            </div>
+            <!--Bottom Wrap End-->
+        </div>
+    </div>
+</aura:component>

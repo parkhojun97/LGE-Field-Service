@@ -1,0 +1,11 @@
+<!--
+ - Created by I2MAX.SEOKHOLEE on 2023-01-04.
+ -->
+
+ <aura:event type="APPLICATION" description="EX_IntegrationOrderListNew_evt">
+    <aura:attribute name="data" type="Object" />
+    <aura:attribute name="caseId" type="String" />
+    <aura:attribute name="contactId" type="String" />
+    <aura:attribute name="caseDescription" type="String" />
+    <aura:attribute name="orderNumber" type="String" />
+</aura:event>

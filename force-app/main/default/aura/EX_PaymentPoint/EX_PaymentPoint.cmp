@@ -1,0 +1,147 @@
+<!--
+ - Created by pttc on 12/15/22.
+ -->
+
+
+<aura:component description="EX_PaymentPoint"
+                implements="flexipage:availableForAllPageTypes,force:appHostable"
+                extends="c:FN_PaymentBase">
+    <aura:handler name="init" value="{! this }" action="{! c.onInit }"/>
+
+    <!-- 23.12.26 gw.lee 결제금액 잠금 조치-->
+    <aura:handler  event="c:EX_PointDisabledEvent_evt" action="{!c.handleLocked}"/>
+    <!--23 10 20 hyungho.chun 포인트 mbs cust id 받기-->
+    <aura:handler  event="c:EX_PaymentPointMBSidSend_evt" action="{!c.getMbsCustId}"/>
+    <aura:attribute name="mbsCustId" type="String" default=""/>
+
+    <aura:registerEvent name="EX_PaymentBalance_evt" type="c:EX_PaymentBalance_evt"/>
+
+    <aura:attribute name="agreementOptions" type="List" default="[
+    {'label': '동의', 'value': 'agree'},
+    {'label': '미동의', 'value': 'disagree'},
+    ]"/>
+
+    <aura:attribute name="constTotalSeconds" type="Integer" default="180"/>
+
+    <aura:attribute name="name" type="String" default=""/>
+    <aura:attribute name="phone" type="String" default=""/>
+    <aura:attribute name="balance" type="Decimal"/>
+
+    <aura:attribute name="authBtnLabel" type="String" default="인증번호발송"/>
+    <aura:attribute name="correctAuthNum" type="String" default="" description="서버에서 생성된 인증번호"/>
+    <aura:attribute name="authNum" type="String" default=""/>
+    <aura:attribute name="authAreaVisible" type="Boolean" default="false"/>
+    <aura:attribute name="isAgreed" type="Boolean" default="true"/>
+    <aura:attribute name="remainingPoint" type="Decimal" default="0"/>
+    <aura:attribute name="isFullUse" type="Boolean" default="false"/>
+    <aura:attribute name="isAuthNumRequested" type="Boolean" default="false"/>
+    <aura:attribute name="isAuthConfirmed" type="Boolean" default="false"/>
+    <aura:attribute name="isLocked" type="Boolean" default="false"/>
+
+    <aura:attribute name="tickerInfo" type="Map" default="{formattedRemainingTime:'', remainingSeconds:0}"/>
+
+
+
+    
+    <div class="slds-box_border slds-color__border_gray-9 fn-desktop" style="width:100%;min-height: 200px;">
+        <lightning:card variant="Narrow">
+
+            <div class="slds-p-around_small">
+
+                <lightning:layout>
+                    <lightning:layoutItem size="6">
+                        <lightning:input type="text" label="고객명" value="{!v.name}" variant="label-inline"
+                                         disabled="{!or( v.isCompleted, v.isLocked)}"/>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+
+                <lightning:layout>
+
+                    <lightning:layoutItem size="6">
+                        <lightning:input type="tel" label="전화번호" value="{!v.phone}" variant="label-inline"
+                                         disabled="{!or( v.isCompleted, v.isLocked)}" onblur="{!c.handlePhoneBlur}"/>
+                    </lightning:layoutItem>
+
+
+                    <lightning:layoutItem>
+                        <lightning:button label="포인트조회"
+                                          disabled="{!or(v.isAgreed == false, v.isCompleted || v.isLocked)}"
+                                          onclick="{!c.handleRetrievePoint}"/>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="slds-m-left_small">
+                        <lightning:input type="checkbox" label="개인정보 활용 동의" variant="label-inline" class="beside"
+                                         disabled="{! v.isCompleted || v.isLocked || v.isAuthConfirmed || v.isAuthConfirmed}"
+                                         checked="{!v.isAgreed}"/>
+                    </lightning:layoutItem>
+
+                </lightning:layout>
+
+
+                <lightning:layout>
+                    <lightning:layoutItem size="6">
+                        <lightning:input type="number" label="포인트 잔액" variant="label-inline" disabled="true" class="text-right"
+                                         value="{!v.remainingPoint}"/>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+
+                <lightning:layout>
+
+                    <lightning:layoutItem size="6">
+                        <div onkeydown="{! c.handleKeyDown}">
+                            <lightning:input type="number" label="결제액" variant="label-inline" class="text-right"
+                                             disabled="{!or(v.isLocked, v.isCompleted)}" value="{!v.amount}"
+                                             onchange="{!c.handleAmountChange}"/>
+                        </div>
+                    </lightning:layoutItem>
+
+
+                    <lightning:layoutItem class="slds-m-left_small">
+                        <lightning:input type="checkbox" label="전체사용" variant="label-inline" class="beside"
+                                         disabled="{!or(lessthanorequal(v.remainingPoint, 0),v.isCompleted)}"
+                                         checked="{!v.isFullUse}" onchange="{!c.handleFullUseChange}"/>
+                    </lightning:layoutItem>
+
+                </lightning:layout>
+
+
+                <aura:if isTrue="{!v.authAreaVisible}">
+                    <lightning:layout class="slds-m-top_xx-small">
+
+                        <lightning:layoutItem size="6">
+                            <div onkeydown="{! c.handleKeyDown}">
+                                <lightning:input type="text" maxlength="6" minlength="6" label="인증번호" variant="label-inline" value="{!v.authNum}"
+                                                 aura:id="authNumInput" disabled="{!v.isCompleted || not(v.isAuthNumRequested) || v.isAuthConfirmed}"/>
+                            </div>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem>
+                            <lightning:button label="{!v.authBtnLabel}" onclick="{!c.handleRequestAuthNum}"
+                                              disabled="{! or(v.isCompleted, v.isAuthConfirmed || lessthanorequal(v.remainingPoint, 0) || lessthanorequal(v.amount, 0))}"/>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem size="2">
+                            <div class="slds-text-align_center  slds-m-top_xxx-small">{!v.tickerInfo.formattedRemainingTime}</div>
+                        </lightning:layoutItem>
+
+
+                        <lightning:layoutItem>
+                            <lightning:button label="확인" variant="brand" onclick="{!c.handleConfirmAuthNum}" disabled="{!v.isAuthConfirmed || not(v.isAuthNumRequested) }"/>
+                        </lightning:layoutItem>
+
+                    </lightning:layout>
+                    <lightning:layout >
+                        <lightning:layoutItem>
+                            <lightning:badge label="포인트 결제 시 수량 반품이 불가능합니다." iconName="utility:warning" class="slds-theme_warning"></lightning:badge>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+
+
+            </div>
+        </lightning:card>
+    </div>
+
+</aura:component>

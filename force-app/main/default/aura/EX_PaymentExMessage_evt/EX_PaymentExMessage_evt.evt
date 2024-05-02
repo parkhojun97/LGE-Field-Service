@@ -1,0 +1,3 @@
+<aura:event type="APPLICATION" description="EX_PaymentExMessage">
+    <aura:attribute name="exMessage" type="String"/>
+</aura:event>

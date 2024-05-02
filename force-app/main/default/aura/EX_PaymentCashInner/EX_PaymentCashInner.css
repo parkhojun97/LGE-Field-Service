@@ -1,0 +1,27 @@
+/**
+ * Created by A78916 on 2023-01-28.
+ */
+
+/* lookup field padding */
+.THIS .slds-form-element.slds-form-element_stacked, .THIS .slds-form-element.slds-form-element_stacked .slds-form-element {
+    padding: 0;
+}
+/* drop files 텍스트 감추기*/
+.THIS .slds-file-selector__text {
+    display: none;
+}
+/* icon button height */
+.THIS .slds-button.slds-button_icon.slds-button_icon-border {
+    max-height: 24px;
+    line-height: unset;
+}
+
+.THIS .slds-form-element__control .slds-radio:nth-child(-n+2) .slds-radio__label .slds-form-element__label {
+    display: inline-block;
+    width: 78px;
+}
+
+.THIS .narrow-button .slds-button {
+    padding-left: 8px;
+    padding-right: 8px;
+}

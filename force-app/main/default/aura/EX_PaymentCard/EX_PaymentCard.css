@@ -1,0 +1,40 @@
+/**
+ * Created by A78916 on 2023-01-26.
+ */
+
+.THIS .slds-card__header .slds-media {
+    display: unset;
+    text-align: center;
+}
+
+.THIS .slds-card__header .slds-media__body {
+    display: none;
+}
+
+.THIS .slds-form-element__row{
+    margin:0 !important;
+}
+
+/*noinspection CssInvalidHtmlTagReference*/
+.THIS lightning-datepicker.slds-form-element{
+    margin-right: 10px;
+}
+
+/*noinspection CssInvalidHtmlTagReference*/
+.THIS lightning-datetimepicker .slds-form-element__group .slds-form-element__row .slds-form-element {
+    flex: 1;
+}
+
+/*24 01 17 hyungho.chun*/
+.THIS .fn-modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--lwc-squareIconLargeBoundary, 3rem) 0 30px 0;
+}
+.THIS .fn-modal-backdrop {
+    height: 100%;
+    /* max-height: 830px; */
+    background-color: rgba(8, 7, 7, 0.6);
+    border-radius: 3px;
+}

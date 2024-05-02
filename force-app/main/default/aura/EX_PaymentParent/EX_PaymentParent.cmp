@@ -1,0 +1,66 @@
+<!--
+ - Created by A78916 on 2023-02-09.
+ -->
+
+<aura:component controller="FNPaymentController" extensible="true" abstract="true"
+                extends="c:FNCommon"
+                description="FN_Payment 의 부모 콤포넌트. 서버 연동과 관련된 기본 로직을 갖고있다. UI 요소는 갖지 않는다.
+init, destroy 핸들러는 자식 콤포넌트에서 정의해야한다.">
+
+    <ltng:require scripts="{!$Resource.momentjs}" afterScriptsLoaded="{!c.onAfterScriptLoaded}"/>
+    <aura:registerEvent name="onCompleted" type="c:FN_PaymentEvent"/>
+    <!--23 10 20 hyungho.chun 결제완료가능여부 체크 이벤트-->
+    <aura:registerEvent name="EX_PaymentCompleted_evt" type="c:EX_PaymentCompleted_evt"/>
+    <!--24 01 08 hyungho.chun 포인트승인 실패시 paymentheader에 금액 초기화용 이벤트 송신-->
+    <aura:registerEvent name="EX_PaymentAmountReset_evt" type="c:EX_PaymentAmountReset_evt"/>
+    <!--  <aura:handler name="init" value="{! this }" action="{! c.onInitSuper }"/>-->
+    <aura:attribute name="onClose" type="Aura.Action" access="public"/>
+
+    <!-- 외부 입력 변수들 -->
+    <aura:attribute name="recordId" type="Id" access="public" description="레코드 아이디"/>
+    <aura:attribute name="ContactId" type="String" access="public" description="수리/판매 고객 ID (Contact Object Record Id)"/>
+    <aura:attribute name="DEPT_CODE_ID" type="String" access="public" description="부서(SM_DEPT) 레코드 아이디"/>
+    <aura:attribute name="BIZ_ORIGIN_TYPE" type="String" access="public" description="판매 > ‘A’ , 수리 > ‘B’"/>
+    <aura:attribute name="BASIS_NO" type="String" access="public" description="근거번호 (수리인 경우 -> 접수번호, 판매인 경우 -> 판매번호)"/>
+    <aura:attribute name="BASIS_DT" type="Date" access="public" description="근거일자 (수리인 경우 -> 수리처리일자, 판매인 경우 -> 판매일자)"/>
+    <aura:attribute name="REPAIR_AMT" type="Integer" access="public" description="수리비"/>
+    <aura:attribute name="REPAIR_PART_AMT" type="Integer" access="public" description="부품비(최종)"/>
+    <aura:attribute name="ACCESSORY_AMT" type="Integer" access="public" description="별매품 비용"/>
+    <aura:attribute name="ACCESSORY_DELI_AMT" type="Integer" access="public" description="별매품 출장비 à 확인 필요"/>
+    <aura:attribute name="SPECIAL_INCOME_AMT" type="Integer" access="public" description="별도금액"/>
+    <aura:attribute name="EXTRA_PROFIT_AMT" type="Integer" access="public" description="잡수익 à 확인 필요"/>
+    <aura:attribute name="SALE_AMT" type="Integer" access="public" description="전체 판매 금액"/>
+    <aura:attribute name="SETTLE_AMT" type="Integer" access="public" description="결제금액 (최종 결제할 금액)"/>
+    <aura:attribute name="BUNDLE" type="Boolean" access="public" description="묶음일 경우 true"/>
+    <aura:attribute name="BUNDLE_Id" type="String" access="public" description="묶음일 경우 묶음 Object 레코드 아이디"/>
+    <aura:attribute name="GOODS_NAME" type="String" access="public" description="상품명"/>
+    <aura:attribute name="GOODS_CNT" type="String" access="public" description="상품 수"/>
+    <aura:attribute name="CRD_MANUAL_INPUT_YN" type="String" default="Y" access="public" description="카드 수기입력 가능여부"/>
+    <!-- 외부 입력 변수들 -->
+
+    <aura:attribute name="totalAmount" type="Decimal" default="0" description="총 결제 금액"/>
+    <aura:attribute name="paidAmount" type="Decimal" default="0" description="총 결제 금액"/>
+    <aura:attribute name="balance" type="Decimal" default="0" description="미 결제 잔액"/>
+    <aura:attribute name="slotAmount" type="Map" default="{}" description="각 슬롯 결제액, slot name 을 key 로 이용한다."/>
+    <aura:attribute name="slotPaidAmount" type="Map" default="{}" description="각 슬롯 결제 완료 금액, slot name 을 key 로 이용한다."/>
+    <aura:attribute name="slotMethod" type="Map" default="{}" description="각 슬롯 결제 방법, slot name 을 key 로 이용한다."/>
+    <aura:attribute name="contact" type="Map" description="고객 정보"/>
+    <aura:attribute name="dept" type="Map" description="조직 정보"/>
+    <aura:attribute name="isLocked" type="Boolean" default="false" description="status = locked 일 때 true"/>
+    <aura:attribute name="isPaymentCompleted" type="Boolean" default="false" description="결제 완료 여부, Header 의 PROGRESS_STATE__c 가 completed 라면 true"/>
+    <aura:attribute name="canComplete" type="Boolean" default="false" description="결제 완료가 가능한 상태일 때 true"/>
+    <aura:attribute name="isFocused" type="Boolean" default="false" description="첫 포커스가 결정되면 true"/>
+
+    <aura:attribute name="targetFields" type="Object"/>
+    <aura:attribute name="simpleRecord" type="Object"/>
+    <aura:attribute name="recordError" type="String"/>
+    <aura:attribute name="isCancel" type="Boolean" default="false" description="결제 취소 여부"/>
+
+    <aura:registerEvent name="EX_PaymentCancelEvent_evt" type="c:EX_PaymentCancelEvent_evt"/>
+
+    <aura:attribute name="pointFlag" type="boolean" default="false"/>
+    <aura:attribute name="cashFlag" type="boolean" default="false"/>
+
+
+    {! v.body}
+</aura:component>

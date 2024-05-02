@@ -1,0 +1,6 @@
+<aura:event type="APPLICATION" description="Event template">
+
+    <aura:attribute name="tabId" type="String"  description="이벤트 재 호출 flag"/>
+    <aura:attribute name="FSIsMaterialPortal" type="Boolean"  />
+    
+</aura:event>

@@ -1,0 +1,14 @@
+<aura:event type="APPLICATION" description="EX_SearchParts_evt">
+    <aura:attribute name="rowId"	         type="String"          description="선택한 Row의 ID"/>
+    <aura:attribute name="rowItem"	         type="List"      description="선택한 Row Item"/>
+    <aura:attribute name="partNo"            type="String"      description="변경된 partNo"/>
+    <aura:attribute name="locationId"            type="String"      description="변경된 location의 ID"/>
+    <aura:attribute name="productId"        type="String"           description="product2Id"/>
+    <aura:attribute name="partlist"         type="List"         description="조회된 원품 리스트"/>
+    <aura:attribute name="sublist"         type="List"         description="조회된 대치부품 리스트"/>
+    <aura:attribute name="pModelName"         type="String"      description="선택한 Row Item의 modelName"/>
+    <aura:attribute name="location"         type="String"       description="선택한 Location"/>
+    <aura:attribute name="pIsWon"         type="String"       description=""/>
+    <aura:attribute name="tabId"         type="String"       description=""/>
+    <aura:attribute name="SUBSTITUTE"   type="String"  />
+</aura:event>

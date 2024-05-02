@@ -1,0 +1,166 @@
+<!--
+  @description       : 
+  @author            : ChangeMeIn@UserSettingsUnder.SFDoc
+  @group             : 
+  @last modified on  : 09-02-2023
+  @last modified by  : ChangeMeIn@UserSettingsUnder.SFDoc
+-->
+<aura:component controller="EX_DocPreviewController"
+                Implements="lightning:actionOverride,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:hasSObjectName,lightning:isUrlAddressable"
+                access="global">
+    <aura:import library="lightning:confirm" property="LightningConfirm"/>
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:overlayLibrary aura:id="overlayLib" />
+    <lightning:overlayLibrary aura:id="overlayLib2"/>
+    <aura:attribute name="isLoading" type="Boolean" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="rcptNumber" type="String" />
+    <aura:attribute name="docCode" type="String" />
+
+    <aura:attribute name="latePayment" type="boolean" default="false"/>
+    <aura:attribute name="IsPrint" type="boolean" default="true"/>
+
+    <aura:attribute name="selectedRow" type="List" default="[]"/>
+    <aura:attribute name="isManagement" type="Boolean" default="false"/>
+    <aura:attribute name="orderNumber" type="String" default=""/>
+
+    <aura:attribute name="standardOrderData" type="List" default="[]"/>
+    <aura:attribute name="soldOutOrderData" type="List" default="[]"/>
+    <aura:attribute name="contactId" type="String" description="소모품 주문 고객"/>
+    <aura:attribute name="templateBody" type="String" description="견적서 탬플릿"/>
+    <aura:attribute name="listSelectRows" type="List" default="[]"/>
+
+    <aura:attribute name="RCVRName" type="String" default=""/>
+    <aura:attribute name="RCVREmail" type="String" default=""/>
+    <aura:attribute name="Note" type="String" default=""/>
+    <aura:handler name="init" value="{!this}" action="{!c.fnInit}"/>
+    <aura:attribute name="documentId" type="String" default=""/>
+    <aura:attribute name="invoiceId" type="String" default=""/>
+    <aura:attribute name="idList" type="List" default="[]"/>
+    <aura:attribute name="parentId" type="String" default=""/>
+
+    <aura:attribute name="stdConsumableOrderId" type="String" default=""/>
+    <aura:attribute name="soldOutConsumableOrderId" type="String" default=""/>
+
+    <aura:attribute name="pdfUrl" type="String" default=""/>
+    <aura:attribute name="invoicePdfUrl" type="String" default=""/>
+    <aura:attribute name="regiPdfUrl" type="String" default=""/>
+    <aura:attribute name="bankPdfUrl" type="String" default=""/>
+
+    <aura:attribute name="isModal" type="boolean" default="false"/>
+
+    <aura:attribute name="value" type="List" default="견적서"/>
+
+    <aura:attribute name="quoteYN" type="Boolean" default="false" description="견적서 체크 여부"/>
+    <aura:attribute name="specYN" type="Boolean" default="false"  description="명세서 체크 여부"/>
+    <aura:attribute name="regiYN" type="Boolean" default="false"  description="사업자등록증 체크 여부"/>
+    <aura:attribute name="bankYN" type="Boolean" default="false"  description="통장사본 체크 여부"/>
+
+    <aura:attribute name="isEmployee" type="boolean" default="0" description="임직원 여부"/>
+    <aura:attribute name="discountType" type="String" default="0" description="할인 유형"/>
+    <aura:attribute name="stdOrderTotalDiscountAmount" type="currency" default="0" description="일반 주문 총 할인 금액"/>
+    <!--    0516 추가 -->
+    <aura:attribute name="createdQuoteId" type="String" description="생성된 견적서의 ID"/>
+
+    <!-- 23 09 02 hyungho.chun 고객 주소-->
+    <aura:attribute name="contactAddress" type="String"/>
+
+    <!--    2023.04.17-->
+    <aura:registerEvent name="refreshEvent" type="c:FN_RefreshEvt"/>
+
+    <aura:html tag="style">
+
+
+    </aura:html>
+    <aura:if isTrue="{!v.isModal}">
+        <aura:html tag="style">
+            .slds-modal__container {
+            max-width: 70rem !important;
+            width:90% !important;
+            height:103%;
+<!--            height:90%;-->
+
+            }
+            .slds-modal__content {
+            overflow-y:auto !important;
+            min-height: 150px !important;
+            max-height: 500px !important;
+            }
+        </aura:html>
+    </aura:if>
+
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+             aria-describedby="modal-content-id-1" class="slds-modal slds-modal_medium slds-fade-in-open">
+        <div class="slds-modal__container">
+            <aura:if isTrue="{!v.isLoading}">
+                <lightning:spinner variant="brand" size="medium"/>
+            </aura:if>
+            <header class="slds-modal__header modal-body">
+
+                <h2 id="modal-heading-id" class="slds-text-heading_medium slds-hyphenate">PDF 생성</h2>
+            </header>
+            <div class="container" style="background: #fff; height: auto;     display: contents; ">
+
+                <lightning:tabset >
+                    <aura:if isTrue="{!v.quoteYN}">
+                        <lightning:tab label="견적서">
+                            <div class="a" style="background: #fff; height: 750px; ">
+
+                                <iframe aura:id="vfFrame" src="{!v.pdfUrl}" style="height:100%; width:100%"></iframe>
+
+
+                            </div>
+                            <!--Detail View normal-->
+                        </lightning:tab>
+                    </aura:if>
+                    <aura:if isTrue="{!v.specYN}">
+
+                        <lightning:tab label="명세서">
+                            <div class="a" style="background: #fff; height: 750px; ">
+
+                                <iframe aura:id="vfFrame" src="{!v.invoicePdfUrl}" style="height:100%; width:100%"></iframe>
+
+
+                            </div>
+                        </lightning:tab>
+                    </aura:if>
+                    <aura:if isTrue="{!v.regiYN}">
+
+                        <lightning:tab label="사업자등록증">
+                            <div class="a" style="background: #fff; height: 750px; ">
+
+                                <iframe aura:id="vfFrame" src="{!v.regiPdfUrl}" style="height:100%; width:100%"></iframe>
+
+
+                            </div>
+                        </lightning:tab>
+                    </aura:if>
+                    <aura:if isTrue="{!v.bankYN}">
+
+                        <lightning:tab label="통장사본">
+                            <div class="a" style="background: #fff; height: 750px; ">
+
+                                <iframe aura:id="vfFrame" src="{!v.bankPdfUrl}" style="height:100%; width:100%"></iframe>
+
+
+                            </div>
+                        </lightning:tab>
+                    </aura:if>
+                </lightning:tabset>
+
+                <div class="btnWrap_bottom">
+                    <lightning:layoutItem class="bottom_btn_wrap" >
+
+                        <lightning:button aura:id="infoBtn1" label="취소" onclick="{!c.fnCancel}" class="bottomBtn bBtn_lineW"/>
+                        <lightning:button aura:id="infoBtn2" label="저장" onclick="{!c.fnSave}" class="bottomBtn bBtn_fillPin"/>
+                    </lightning:layoutItem>
+                </div>
+                <!--하단 버튼 끝-->
+
+            </div>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open custom_backdrop"></div>
+
+</aura:component>
