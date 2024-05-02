@@ -106,9 +106,10 @@ export default class ContactInfo extends LightningElement {
             .then((result) => {
                 if(result == 'success'){
                     this.showToast('success', '저장 성공.');
-                    console.log(result);
+                    console.log('result =>', result);
                     this.contEditClick = false;
                 } else if(result == 'fail'){
+                    console.log('result =>', result);
                     this.showToast('error', '저장에 실패하였습니다.');
                 }
             })
