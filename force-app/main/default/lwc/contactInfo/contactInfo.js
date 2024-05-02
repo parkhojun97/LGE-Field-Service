@@ -81,8 +81,10 @@ export default class ContactInfo extends LightningElement {
         || (this.contDept        == null || this.contDept        == '' || this.contDept        == undefined)){
             
             this.validChk = false;
+            console.log('valid fail');
         } else {
             this.validChk = true;
+            console.log('valid success');
         }
     }
 
